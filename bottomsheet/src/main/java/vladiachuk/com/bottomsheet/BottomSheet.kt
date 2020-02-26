@@ -1,11 +1,12 @@
 package vladiachuk.com.bottomsheet
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
+import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
-import androidx.core.view.ViewCompat
 
 
 class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLayout(context, attrs) {
@@ -18,8 +19,8 @@ class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLayout(c
         }
         get() = mLayoutId
 
-    private var mView: View? = null
-    var view: View?
+    private lateinit var mView: View
+    var view: View
         set(value) {
             mView = value
             removeAllViews()
@@ -27,10 +28,41 @@ class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLayout(c
         }
         get() = mView
 
+    var maxPosition = 0f
+        set(value) {
+            field = value
+            if (position > value) position = value
+        }
 
+    var minPosition = 0f
+        set(value) {
+            field = value
+            if (position > value) position = value
+        }
+
+    var peekHeight = 0f
+        set(value) {
+            field = value
+            val peekPosition = height - peekHeight
+            if (maxPosition > peekPosition) {
+                maxPosition = height - peekPosition
+            }
+        }
+
+    var defaultPeekHeight = 0f
+
+    val touchController: TouchController
+    val controller: BottomSheetController? = null
+
+
+    /**
+     * Initialization
+     */
     init {
         setupAttributes(attrs)
         inflateLayout()
+
+        touchController = TouchController(this)
     }
 
     private fun setupAttributes(attrs: AttributeSet?) {
@@ -38,8 +70,11 @@ class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLayout(c
 
         val arr = context.obtainStyledAttributes(attrs, R.styleable.BottomSheet, 0, 0)
 
-        if (arr.hasValue(R.styleable.BottomSheet_layout))
+        if (arr.hasValue(R.styleable.BottomSheet_layout)) {
             mLayoutId = arr.getResourceId(R.styleable.BottomSheet_layout, 0)
+        }
+
+        defaultPeekHeight = 70f*3
 
         arr.recycle()
     }
@@ -48,48 +83,57 @@ class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLayout(c
         if (mLayoutId == null) return
         removeAllViews()
 
-        mView = inflate(context, mLayoutId!!, this)
+        mView = LayoutInflater.from(context).inflate(mLayoutId!!, this, false)
+        addView(mView)
     }
 
-    override fun onStartNestedScroll(child: View?, target: View?, nestedScrollAxes: Int): Boolean {
-        return nestedScrollAxes and ViewCompat.SCROLL_AXIS_VERTICAL != 0
+
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+        peekHeight = defaultPeekHeight
+
+        maxPosition = height - peekHeight
+        if (position < minPosition) position = minPosition
+    }
+
+    override fun onStartNestedScroll(child: View?, target: View?, axes: Int): Boolean {
+        return touchController.onStartNestedScroll(target, axes)
+    }
+
+    override fun onStopNestedScroll(child: View?) {
+        super.onStopNestedScroll(child)
+        touchController.onStopNestedScroll()
     }
 
     override fun onNestedPreScroll(target: View?, dx: Int, dy: Int, consumed: IntArray?) {
-        view?.let { view ->
-            if (view.y - dy < 0) {
-                view.y = 0f
-            } else {
-                if (target!!.scrollY == 0) {
-                    consumed!![1] = dy
-                    view.offsetTopAndBottom(-dy)
-                }
-            }
-        }
+        touchController.onNestedPreScroll(target, dy, consumed)
     }
 
     override fun onNestedPreFling(target: View?, velocityX: Float, velocityY: Float): Boolean {
-        if (target == null) return false
-        return target.scrollY == 0
+        return touchController.onNestedPreFling(target)
     }
 
-    var down = 0f
-
+    @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(e: MotionEvent?): Boolean {
-        when (e!!.actionMasked) {
-            MotionEvent.ACTION_DOWN -> {
-                down = e.y
-            }
-            MotionEvent.ACTION_MOVE -> {
-                if (view!!.y + e.y - down < 0) {
-                    view!!.y = 0f
-                } else {
-                    view!!.offsetTopAndBottom((e.y - down).toInt())
-                }
-            }
-            MotionEvent.ACTION_UP -> {
-            }
+        return e?.let { touchController.onTouch(e) } ?: false
+    }
+
+
+    override fun onInterceptTouchEvent(e: MotionEvent?): Boolean {
+        return e?.let { touchController.onInterceptTouch(e) } ?: false
+    }
+
+    /**
+     * Public methods
+     */
+
+    var position: Float
+        set(value) {
+            mView.y = value
         }
-        return true
+        get() = mView.y
+
+    fun translate(dy: Int) {
+        mView.offsetTopAndBottom(dy)
     }
 }
