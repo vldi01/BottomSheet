@@ -9,7 +9,7 @@ import android.view.View
 import android.widget.FrameLayout
 
 
-class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLayout(context, attrs) {
+open class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLayout(context, attrs) {
     private var mLayoutId: Int? = null
     var layoutId: Int?
         set(value) {
@@ -32,12 +32,14 @@ class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLayout(c
         set(value) {
             field = value
             if (position > value) position = value
+            controller?.run { COLLAPSED_STATE.position = value }
         }
 
     var minPosition = 0f
         set(value) {
             field = value
             if (position > value) position = value
+            controller?.run { EXPANDED_STATE.position = value }
         }
 
     var peekHeight = 0f
@@ -51,9 +53,8 @@ class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLayout(c
 
     var defaultPeekHeight = 0f
 
-    val touchController: TouchController
-    val controller: BottomSheetController? = null
-
+    var touchController: TouchController
+    var controller: BottomSheetController? = null
 
     /**
      * Initialization
@@ -94,6 +95,8 @@ class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLayout(c
 
         maxPosition = height - peekHeight
         if (position < minPosition) position = minPosition
+
+        controller?.run { HALF_EXPANDED_STATE.position = height/2f }
     }
 
     override fun onStartNestedScroll(child: View?, target: View?, axes: Int): Boolean {
