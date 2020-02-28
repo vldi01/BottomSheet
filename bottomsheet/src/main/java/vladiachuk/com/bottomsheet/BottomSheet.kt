@@ -34,6 +34,7 @@ open class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLay
     var maxPosition = 0f
         set(value) {
             field = value
+            Log.d(TAG, "Max position $value")
             if (position > value) position = value
             controller?.run { COLLAPSED_STATE.position = value }
         }
@@ -41,6 +42,7 @@ open class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLay
     var minPosition = 0f
         set(value) {
             field = value
+            Log.d(TAG, "Min position $value")
             if (position > value) position = value
             controller?.run { EXPANDED_STATE.position = value }
         }
@@ -48,6 +50,7 @@ open class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLay
     var peekHeight = 0f
         set(value) {
             field = value
+            Log.d(TAG, "Peek height $value")
             val peekPosition = height - peekHeight
             if (maxPosition > peekPosition) {
                 maxPosition = height - peekPosition

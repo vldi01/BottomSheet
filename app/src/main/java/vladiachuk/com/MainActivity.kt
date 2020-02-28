@@ -37,7 +37,13 @@ class MainActivity : AppCompatActivity() {
                 state = nextState
             }
 
+            onStateChangedListener = {
+                println(it)
+            }
+        }
 
+        bottomSheet.onPositionChangedListener = {position ->
+            println(position)
         }
 
 

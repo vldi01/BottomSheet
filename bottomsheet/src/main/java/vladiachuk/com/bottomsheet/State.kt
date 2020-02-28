@@ -1,6 +1,6 @@
 package vladiachuk.com.bottomsheet
 
-class State(val id: Int, var position: Float) {
+data class State(val id: Int, var position: Float) {
     init {
         id.required()
     }

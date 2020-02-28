@@ -2,6 +2,7 @@ package vladiachuk.com.bottomsheet
 
 import android.animation.Animator
 import android.animation.ValueAnimator
+import android.util.Log
 import android.util.TypedValue
 import android.view.View
 import android.view.animation.BounceInterpolator
@@ -13,6 +14,8 @@ import kotlin.math.max
 import kotlin.math.min
 
 open class BottomSheetController(private val bs: BottomSheet) {
+    private val TAG = "BottomSheetController"
+
     private val MAX_DURATION = 500
     private val MIN_DURATION = 50
 
@@ -46,6 +49,7 @@ open class BottomSheetController(private val bs: BottomSheet) {
     private var mState = EXPANDED_STATE
         set(value) {
             field = value
+            Log.d(TAG, "State $value")
             onStateChangedListener?.invoke(value)
         }
     var state
@@ -71,6 +75,8 @@ open class BottomSheetController(private val bs: BottomSheet) {
      * Private methods
      */
     private fun onStop(speed: Float) {
+        Log.d(TAG, "OnStop speed: $speed")
+
         var nextState = this.nextState
         val bsPos = bs.position
 
@@ -83,12 +89,14 @@ open class BottomSheetController(private val bs: BottomSheet) {
         nextState = when {
             //no need to change smth
             (probableState != null) -> {
+                Log.d(TAG, "No need to change")
                 mState = probableState
                 return
             }
 
             //fast speed
             (absSpeed >= FAST_SPEED) -> {
+                Log.d(TAG, "Fast speed")
                 if (speed > 0) {
                     possibleStates.maxBy { it.position } ?: mState
                 } else {
@@ -98,6 +106,7 @@ open class BottomSheetController(private val bs: BottomSheet) {
 
             //closest
             (absSpeed < SMALL_SPEED) -> {
+                Log.d(TAG, "Closest")
                 possibleStates.minBy { abs(bsPos - it.position) } ?: mState
             }
 
@@ -108,6 +117,7 @@ open class BottomSheetController(private val bs: BottomSheet) {
                     || (bsPos > mState.position && speed < 0)
                     || (bsPos < mState.position && speed >= 0)
                     ) -> {
+                Log.d(TAG, "Previous")
                 mState
             }
 
@@ -115,6 +125,7 @@ open class BottomSheetController(private val bs: BottomSheet) {
             (!(bsPos > min(mState.position, nextState.position)
                     && bsPos < max(mState.position, nextState.position))
                     ) -> {
+                Log.d(TAG, "Next closest")
                 if (speed > 0) {
                     possibleStates.filter { it.position >= bsPos }.minBy { abs(bsPos - it.position) }
                         ?: mState
@@ -125,6 +136,7 @@ open class BottomSheetController(private val bs: BottomSheet) {
             }
 
             else -> {
+                Log.d(TAG, "Next state")
                 nextState
             }
         }
