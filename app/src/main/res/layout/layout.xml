@@ -16,7 +16,8 @@
         android:id="@+id/cus"
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:background="#A6FF4D"/>
+        android:background="#A6FF4D"
+        android:layout_marginTop="20dp"/>
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -29,10 +30,11 @@
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="500dp"
+                android:layout_height="100dp"
                 android:background="#2055DA" />
 
             <Button
+                android:id="@+id/scbtn"
                 android:layout_margin="20dp"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"

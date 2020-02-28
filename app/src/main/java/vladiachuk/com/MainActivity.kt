@@ -19,9 +19,7 @@ class MainActivity : AppCompatActivity() {
 
         bottomSheet.controller!!.run {
             cus.post {
-                println(cus.y)
-                println(cus.height)
-                cusState = createState(R.id.cus)
+                cusState = createState(cus)
 
                 possibleStates = arrayListOf(COLLAPSED_STATE, EXPANDED_STATE, HALF_EXPANDED_STATE, cusState)
                 statesGraph = arrayListOf(

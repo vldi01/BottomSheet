@@ -2,6 +2,7 @@ package vladiachuk.com.bottomsheet
 
 import android.animation.Animator
 import android.animation.ValueAnimator
+import android.util.TypedValue
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import kotlin.coroutines.resume
@@ -15,11 +16,14 @@ open class BottomSheetController(private val bs: BottomSheet) {
     private val MIN_DURATION = 50
 
 
-    var FAST_SPEED = 2f
-    var MEDIUM_SPEED = 0.4f
+    var FAST_SPEED =
+        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2f, bs.resources.displayMetrics)
+    var MEDIUM_SPEED =
+        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 0.15f, bs.resources.displayMetrics)
     var SMALL_SPEED = 0.05f
 
-    var MAX_PREV_DISTANCE = 200
+    var MAX_PREV_DISTANCE =
+        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 60f, bs.resources.displayMetrics)
     var MAX_PREV_PERCENTAGE = 0.3f
 
     val COLLAPSED_STATE = createState(bs.maxPosition)
@@ -84,7 +88,7 @@ open class BottomSheetController(private val bs: BottomSheet) {
             //closest
             (absSpeed < SMALL_SPEED) -> {
                 println("Closest")
-                possibleStates.filter { it != mState }.minBy { abs(bsPos - it.position) } ?: mState
+                possibleStates.minBy { abs(bsPos - it.position) } ?: mState
             }
 
             //previous
@@ -158,11 +162,16 @@ open class BottomSheetController(private val bs: BottomSheet) {
      * Public methods
      */
     fun createState(position: Float): State {
+        println(position)
         return State(maxStateId++, position)
     }
 
-    fun createState(resId: Int): State {
-        return createState(bs.findViewById<View>(resId).run { bs.height - y - height })
+    fun createState(view: View): State {
+        return createState(with(view) { bs.height - y - height })
+    }
+
+    fun createState(viewId: Int): State {
+        return createState(bs.findViewById<View>(viewId))
     }
 
     val nextState: State
