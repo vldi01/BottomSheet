@@ -6,10 +6,17 @@
     android:background="#22222222">
 
     <Button
+        android:id="@+id/btn"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:text="Click"
         android:layout_margin="10dp"/>
+
+    <View
+        android:id="@+id/cus"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:background="#A6FF4D"/>
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"

@@ -2,6 +2,7 @@ package vladiachuk.com.bottomsheet
 
 import android.animation.Animator
 import android.animation.ValueAnimator
+import android.view.View
 import android.view.animation.DecelerateInterpolator
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -11,6 +12,15 @@ import kotlin.math.min
 
 open class BottomSheetController(private val bs: BottomSheet) {
     private val MAX_DURATION = 400
+    private val MIN_DURATION = 50
+
+
+    var FAST_SPEED = 2f
+    var MEDIUM_SPEED = 0.4f
+    var SMALL_SPEED = 0.05f
+
+    var MAX_PREV_DISTANCE = 200
+    var MAX_PREV_PERCENTAGE = 0.3f
 
     val COLLAPSED_STATE = createState(bs.maxPosition)
     val EXPANDED_STATE = createState(bs.minPosition)
@@ -30,7 +40,8 @@ open class BottomSheetController(private val bs: BottomSheet) {
     var state
         set(value) {
             mState = value
-            setPositionAnim(value.position)
+            if (bs.position != value.position)
+                setPositionAnim(value.position)
         }
         get() = mState
 
@@ -38,8 +49,7 @@ open class BottomSheetController(private val bs: BottomSheet) {
     var statesGraph: ArrayList<IntArray> = ArrayList()
 
     init {
-        bs.touchController.addOnStartDraggingListener(this::onStart)
-        bs.touchController.addOnDragListener(this::onDrag)
+        @Suppress("LeakingThis")
         bs.touchController.addOnStopDraggingListener(this::onStop)
     }
 
@@ -47,28 +57,44 @@ open class BottomSheetController(private val bs: BottomSheet) {
     /**
      * Private methods
      */
-    private fun onStart() {
-
-    }
-
     private fun onStop(speed: Float) {
+        println(speed)
         var nextState = this.nextState
         val bsPos = bs.position
 
         val delta = abs(bsPos - mState.position)
+        val absSpeed = abs(speed)
         nextState = when {
+            //no need to change smth
+            (possibleStates.firstOrNull { it.position == bsPos } != null) -> {
+                println("No need to ch")
+                return
+            }
+
+            //fast speed
+            (absSpeed >= FAST_SPEED) -> {
+                println("Fast speed")
+                if (speed > 0) {
+                    possibleStates.maxBy { it.position } ?: mState
+                } else {
+                    possibleStates.minBy { it.position } ?: mState
+                }
+            }
+
             //closest
-            (abs(speed) < 0.1) -> {
+            (absSpeed < SMALL_SPEED) -> {
+                println("Closest")
                 possibleStates.filter { it != mState }.minBy { abs(bsPos - it.position) } ?: mState
             }
 
             //previous
-            ((abs(speed) < 1
-                    && delta < 200
-                    && delta < 0.3f * abs(mState.position - nextState.position))
+            ((absSpeed <= MEDIUM_SPEED
+                    && delta < MAX_PREV_DISTANCE
+                    && delta < MAX_PREV_PERCENTAGE * abs(mState.position - nextState.position))
                     || (bsPos > mState.position && speed < 0)
                     || (bsPos < mState.position && speed >= 0)
                     ) -> {
+                println("Previous")
                 mState
             }
 
@@ -76,29 +102,31 @@ open class BottomSheetController(private val bs: BottomSheet) {
             (!(bsPos > min(mState.position, nextState.position)
                     && bsPos < max(mState.position, nextState.position))
                     ) -> {
+                println("Next closes")
                 if (speed > 0) {
-                    possibleStates.filter { it.position > bsPos }.minBy { abs(bsPos - it.position) }
+                    possibleStates.filter { it.position >= bsPos }.minBy { abs(bsPos - it.position) }
                         ?: mState
                 } else {
-                    possibleStates.filter { it.position < bsPos }.minBy { abs(bsPos - it.position) }
+                    possibleStates.filter { it.position <= bsPos }.minBy { abs(bsPos - it.position) }
                         ?: mState
                 }
             }
 
-            else -> nextState
+            else -> {
+                println("Next")
+                nextState
+            }
         }
 
-        mState = nextState
+        state = nextState
     }
 
-    private fun onDrag(speed: Float) {
-
-    }
 
     private fun getAnim(toPos: Float): ValueAnimator {
         val bsPos = bs.position
         anim.setFloatValues(bs.position, toPos)
-        anim.duration = (abs(bsPos - toPos) / bs.height * MAX_DURATION).toLong()
+        anim.duration =
+            (abs(bsPos - toPos) / (bs.height - bs.peekHeight) * (MAX_DURATION - MIN_DURATION) + MIN_DURATION).toLong()
         anim.removeAllListeners()
         return anim
     }
@@ -133,6 +161,10 @@ open class BottomSheetController(private val bs: BottomSheet) {
         return State(maxStateId++, position)
     }
 
+    fun createState(resId: Int): State {
+        return createState(bs.findViewById<View>(resId).run { bs.height - y - height })
+    }
+
     val nextState: State
         get() {
             val nextStateId = statesGraph.first { it[0] == mState.id }[1]
@@ -141,6 +173,7 @@ open class BottomSheetController(private val bs: BottomSheet) {
 
     suspend fun setStateSuspend(state: State) {
         mState = state
-        setPositionAnimSuspend(state.position)
+        if (bs.position != state.position)
+            setPositionAnimSuspend(state.position)
     }
 }

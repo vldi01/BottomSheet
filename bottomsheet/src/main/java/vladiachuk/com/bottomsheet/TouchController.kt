@@ -108,6 +108,7 @@ open class TouchController(private val bs: BottomSheet) {
         when (e.actionMasked) {
             MotionEvent.ACTION_DOWN -> return false
             MotionEvent.ACTION_MOVE -> if (touchDown < 0) return false
+            MotionEvent.ACTION_UP -> return false
         }
         return true
     }

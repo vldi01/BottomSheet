@@ -121,7 +121,6 @@ open class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLay
         return e?.let { touchController.onTouch(e) } ?: false
     }
 
-
     override fun onInterceptTouchEvent(e: MotionEvent?): Boolean {
         return e?.let { touchController.onInterceptTouch(e) } ?: false
     }
