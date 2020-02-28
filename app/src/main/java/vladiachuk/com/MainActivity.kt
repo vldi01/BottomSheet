@@ -34,7 +34,6 @@ class MainActivity : AppCompatActivity() {
 
 
             btn.setOnClickListener {
-                println("Click")
                 state = nextState
             }
 

@@ -17,6 +17,12 @@ open class BottomSheetController(private val bs: BottomSheet) {
     private val MIN_DURATION = 50
 
 
+    val COLLAPSED_STATE = createState(bs.maxPosition)
+    val EXPANDED_STATE = createState(bs.minPosition)
+    val HALF_EXPANDED_STATE = createState(bs.height / 2f)
+    val HIDDEN_STATE = createState(bs.height.toFloat())
+
+
     var FAST_SPEED =
         TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2f, bs.resources.displayMetrics)
     var MEDIUM_SPEED =
@@ -26,11 +32,6 @@ open class BottomSheetController(private val bs: BottomSheet) {
     var MAX_PREV_DISTANCE =
         TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 60f, bs.resources.displayMetrics)
     var MAX_PREV_PERCENTAGE = 0.3f
-
-    val COLLAPSED_STATE = createState(bs.maxPosition)
-    val EXPANDED_STATE = createState(bs.minPosition)
-    val HALF_EXPANDED_STATE = createState(bs.height / 2f)
-    val HIDDEN_STATE = createState(bs.height.toFloat())
 
 
     private var anim = ValueAnimator().apply {
@@ -64,7 +65,6 @@ open class BottomSheetController(private val bs: BottomSheet) {
      * Private methods
      */
     private fun onStop(speed: Float) {
-        println(speed)
         var nextState = this.nextState
         val bsPos = bs.position
 
@@ -77,14 +77,12 @@ open class BottomSheetController(private val bs: BottomSheet) {
         nextState = when {
             //no need to change smth
             (probableState != null) -> {
-                println("No need to ch")
                 mState = probableState
                 return
             }
 
             //fast speed
             (absSpeed >= FAST_SPEED) -> {
-                println("Fast speed")
                 if (speed > 0) {
                     possibleStates.maxBy { it.position } ?: mState
                 } else {
@@ -94,7 +92,6 @@ open class BottomSheetController(private val bs: BottomSheet) {
 
             //closest
             (absSpeed < SMALL_SPEED) -> {
-                println("Closest")
                 possibleStates.minBy { abs(bsPos - it.position) } ?: mState
             }
 
@@ -105,7 +102,6 @@ open class BottomSheetController(private val bs: BottomSheet) {
                     || (bsPos > mState.position && speed < 0)
                     || (bsPos < mState.position && speed >= 0)
                     ) -> {
-                println("Previous")
                 mState
             }
 
@@ -113,7 +109,6 @@ open class BottomSheetController(private val bs: BottomSheet) {
             (!(bsPos > min(mState.position, nextState.position)
                     && bsPos < max(mState.position, nextState.position))
                     ) -> {
-                println("Next closes")
                 if (speed > 0) {
                     possibleStates.filter { it.position >= bsPos }.minBy { abs(bsPos - it.position) }
                         ?: mState
@@ -124,7 +119,6 @@ open class BottomSheetController(private val bs: BottomSheet) {
             }
 
             else -> {
-                println("Next")
                 nextState
             }
         }
@@ -169,7 +163,6 @@ open class BottomSheetController(private val bs: BottomSheet) {
      * Public methods
      */
     fun createState(position: Float): State {
-        println(position)
         return State(maxStateId++, position)
     }
 
