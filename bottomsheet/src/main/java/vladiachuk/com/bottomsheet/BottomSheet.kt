@@ -96,7 +96,10 @@ open class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLay
         maxPosition = height - peekHeight
         if (position < minPosition) position = minPosition
 
-        controller?.run { HALF_EXPANDED_STATE.position = height/2f }
+        controller?.run {
+            HALF_EXPANDED_STATE.position = height/2f
+            HIDDEN_STATE.position = height.toFloat()
+        }
     }
 
     override fun onStartNestedScroll(child: View?, target: View?, axes: Int): Boolean {

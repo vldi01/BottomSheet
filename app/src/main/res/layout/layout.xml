@@ -30,7 +30,7 @@
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="100dp"
+                android:layout_height="400dp"
                 android:background="#2055DA" />
 
             <Button
@@ -42,8 +42,12 @@
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="1000dp"
+                android:layout_height="500dp"
                 android:background="#3CDA20" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="500dp"
+                android:background="#27721A" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

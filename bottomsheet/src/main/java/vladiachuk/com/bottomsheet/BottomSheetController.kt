@@ -4,6 +4,7 @@ import android.animation.Animator
 import android.animation.ValueAnimator
 import android.util.TypedValue
 import android.view.View
+import android.view.animation.BounceInterpolator
 import android.view.animation.DecelerateInterpolator
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -12,7 +13,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 open class BottomSheetController(private val bs: BottomSheet) {
-    private val MAX_DURATION = 400
+    private val MAX_DURATION = 500
     private val MIN_DURATION = 50
 
 
@@ -29,6 +30,7 @@ open class BottomSheetController(private val bs: BottomSheet) {
     val COLLAPSED_STATE = createState(bs.maxPosition)
     val EXPANDED_STATE = createState(bs.minPosition)
     val HALF_EXPANDED_STATE = createState(bs.height / 2f)
+    val HIDDEN_STATE = createState(bs.height.toFloat())
 
 
     private var anim = ValueAnimator().apply {
@@ -68,10 +70,15 @@ open class BottomSheetController(private val bs: BottomSheet) {
 
         val delta = abs(bsPos - mState.position)
         val absSpeed = abs(speed)
+
+        //probably bottomSheet on this state
+        val probableState = possibleStates.firstOrNull { it.position == bsPos }
+
         nextState = when {
             //no need to change smth
-            (possibleStates.firstOrNull { it.position == bsPos } != null) -> {
+            (probableState != null) -> {
                 println("No need to ch")
+                mState = probableState
                 return
             }
 
