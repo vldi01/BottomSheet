@@ -2,5 +2,6 @@
 <resources>
     <declare-styleable name="BottomSheet">
         <attr name="layout" format="reference"/>
+        <attr name="peekHeight" format="dimension"/>
     </declare-styleable>
 </resources>

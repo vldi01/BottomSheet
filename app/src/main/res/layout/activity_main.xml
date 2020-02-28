@@ -29,7 +29,8 @@
         android:id="@+id/bottomSheet"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout="@layout/layout"/>
+        app:layout="@layout/layout"
+        app:peekHeight="70dp"/>
 
 
 

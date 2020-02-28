@@ -3,6 +3,7 @@ package vladiachuk.com.bottomsheet
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -10,6 +11,8 @@ import android.widget.FrameLayout
 
 
 open class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLayout(context, attrs) {
+    private val TAG = "BottomSheet"
+
     private var mLayoutId: Int? = null
     var layoutId: Int?
         set(value) {
@@ -53,6 +56,8 @@ open class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLay
 
     var defaultPeekHeight = 0f
 
+    var onPositionChangedListener: ((position: Float) -> Unit)? = null
+
     var touchController: TouchController
     var controller: BottomSheetController? = null
 
@@ -74,8 +79,9 @@ open class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLay
         if (arr.hasValue(R.styleable.BottomSheet_layout)) {
             mLayoutId = arr.getResourceId(R.styleable.BottomSheet_layout, 0)
         }
-
-        defaultPeekHeight = 70f*3
+        if (arr.hasValue(R.styleable.BottomSheet_peekHeight)) {
+            defaultPeekHeight = arr.getDimensionPixelOffset(R.styleable.BottomSheet_peekHeight, 0).toFloat()
+        }
 
         arr.recycle()
     }
@@ -91,6 +97,7 @@ open class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLay
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
+        Log.d(TAG, "OnLayout")
         peekHeight = defaultPeekHeight
 
         maxPosition = height - peekHeight
@@ -135,10 +142,12 @@ open class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLay
     var position: Float
         set(value) {
             mView.y = value
+            onPositionChangedListener?.invoke(value)
         }
         get() = mView.y
 
     fun translate(dy: Int) {
         mView.offsetTopAndBottom(dy)
+        onPositionChangedListener?.invoke(position)
     }
 }

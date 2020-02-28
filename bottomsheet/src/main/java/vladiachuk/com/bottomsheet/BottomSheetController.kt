@@ -44,6 +44,10 @@ open class BottomSheetController(private val bs: BottomSheet) {
     private var maxStateId = 0
 
     private var mState = EXPANDED_STATE
+        set(value) {
+            field = value
+            onStateChangedListener?.invoke(value)
+        }
     var state
         set(value) {
             mState = value
@@ -54,6 +58,8 @@ open class BottomSheetController(private val bs: BottomSheet) {
 
     var possibleStates: ArrayList<State> = ArrayList()
     var statesGraph: ArrayList<IntArray> = ArrayList()
+
+    var onStateChangedListener: ((state: State) -> Unit)? = null
 
     init {
         @Suppress("LeakingThis")
