@@ -1,16 +1,20 @@
 package vladiachuk.com.bottomsheet
 
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.view.ViewCompat
+import kotlin.math.abs
 
 open class TouchController(private val bs: BottomSheet) {
+    private val MAX_LAST_SPEEDS_COUNT = 5
+
     private var isScrolling = false
     private var isDragging = false
 
     private val onStartListeners = ArrayList<() -> Unit>()
     private val onDragListeners = ArrayList<(speed: Float) -> Unit>()
-    private val onStopListeners = ArrayList<(speed: Float) -> Unit>()
+    private val onStopListeners = ArrayList<(speed: Float, stopTime: Int) -> Unit>()
 
     /**
      * Private methods
@@ -118,7 +122,13 @@ open class TouchController(private val bs: BottomSheet) {
      */
 
     private var lastTime = 0L
+
     private var lastSpeed = 0f
+    private var lastSpeeds = Array(MAX_LAST_SPEEDS_COUNT) { 0f }
+    private var lastSpeedsCount = 0
+    private var lastSpeedsIndex = 0
+
+
     private fun onDrag(dy: Float) {
         if (!isDragging) {
             isDragging = true
@@ -126,9 +136,20 @@ open class TouchController(private val bs: BottomSheet) {
             onStartListeners.forEach { it.invoke() }
         } else {
             val curTime = System.currentTimeMillis()
-            lastSpeed = dy / (curTime - lastTime)
+            val timeDelta = curTime - lastTime
+            if (timeDelta == 0L || dy == 0f) {
+                return
+            }
+
+            val lastSpeed = dy / timeDelta
+
+            lastSpeeds[lastSpeedsIndex++ % MAX_LAST_SPEEDS_COUNT] = abs(lastSpeed)
+            if (lastSpeedsCount < MAX_LAST_SPEEDS_COUNT) lastSpeedsCount++
+
             lastTime = curTime
-            onDragListeners.forEach { it.invoke(lastSpeed) }
+            this.lastSpeed = lastSpeeds.sum()/lastSpeedsCount*(lastSpeed / abs(lastSpeed))
+
+            onDragListeners.forEach { it.invoke(this.lastSpeed) }
         }
     }
 
@@ -136,7 +157,12 @@ open class TouchController(private val bs: BottomSheet) {
         if (isDragging) {
             isDragging = false
             val timeDelta = System.currentTimeMillis() - lastTime
-            onStopListeners.forEach { it.invoke(if (timeDelta > 0) lastSpeed / timeDelta else lastSpeed) }
+
+            onStopListeners.forEach { it.invoke(lastSpeed, timeDelta.toInt()) }
+
+            lastSpeedsCount = 0
+            lastSpeedsIndex = 0
+            lastSpeeds.fill(0f)
         }
     }
 
@@ -145,14 +171,11 @@ open class TouchController(private val bs: BottomSheet) {
      */
 
     fun addOnStartDraggingListener(listener: () -> Unit) = onStartListeners.add(listener)
-
-    fun addOnStopDraggingListener(listener: (speed: Float) -> Unit) = onStopListeners.add(listener)
+    fun addOnStopDraggingListener(listener: (speed: Float, stopTime: Int) -> Unit) = onStopListeners.add(listener)
     fun addOnDragListener(listener: (speed: Float) -> Unit) = onDragListeners.add(listener)
 
     fun removeOnStartDraggingListener(listener: () -> Unit) = onStartListeners.remove(listener)
-    fun removeOnStopDraggingListener(listener: (speed: Float) -> Unit) =
-        onStopListeners.remove(listener)
-
+    fun removeOnStopDraggingListener(listener: (speed: Float, stopTime: Int) -> Unit) = onStopListeners.remove(listener)
     fun removeOnDragListener(listener: (speed: Float) -> Unit) = onDragListeners.remove(listener)
 
 }

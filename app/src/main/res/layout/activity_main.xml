@@ -30,7 +30,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout="@layout/layout"
-        app:peekHeight="70dp"/>
+        app:peekHeight="70dp">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="From BS"
+            android:layout_marginTop="200dp"
+            android:textSize="26sp"
+            android:textAlignment="center"/>
+    </vladiachuk.com.bottomsheet.BottomSheet>
 
 
 

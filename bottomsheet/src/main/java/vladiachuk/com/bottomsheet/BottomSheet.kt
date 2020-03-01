@@ -25,9 +25,8 @@ open class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLay
     private lateinit var mView: View
     var view: View
         set(value) {
+            if (::mView.isInitialized) removeView(mView)
             mView = value
-            removeAllViews()
-            requestLayout()
         }
         get() = mView
 
@@ -91,24 +90,31 @@ open class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLay
 
     private fun inflateLayout() {
         if (mLayoutId == null) return
-        removeAllViews()
 
         mView = LayoutInflater.from(context).inflate(mLayoutId!!, this, false)
         addView(mView)
     }
 
 
+    /**
+     * Overrides
+     */
+    private var isFirstLoaded = true
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-        Log.d(TAG, "OnLayout")
-        peekHeight = defaultPeekHeight
+        if (isFirstLoaded) {
+            Log.d(TAG, "OnFirstLoaded")
+            if (::mView.isInitialized) {
+                mView.bringToFront()
+            }
 
-        maxPosition = height - peekHeight
-        if (position < minPosition) position = minPosition
+            peekHeight = defaultPeekHeight
 
-        controller?.run {
-            HALF_EXPANDED_STATE.position = height/2f
-            HIDDEN_STATE.position = height.toFloat()
+            maxPosition = height - peekHeight
+            if (position < minPosition) position = minPosition
+
+            controller?.onFirstLoad()
+            isFirstLoaded = false
         }
     }
 

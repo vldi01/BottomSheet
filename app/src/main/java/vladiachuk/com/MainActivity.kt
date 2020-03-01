@@ -18,7 +18,7 @@ class MainActivity : AppCompatActivity() {
         var cusState: State
 
         bottomSheet.controller!!.run {
-            cus.post {
+            bottomSheet.post {
                 cusState = createState(cus)
 
                 possibleStates = arrayListOf(COLLAPSED_STATE, EXPANDED_STATE, HALF_EXPANDED_STATE, cusState)
@@ -28,24 +28,17 @@ class MainActivity : AppCompatActivity() {
                     intArrayOf(EXPANDED_STATE.id, cusState.id),
                     intArrayOf(cusState.id, EXPANDED_STATE.id)
                 )
-
                 state = cusState
             }
 
 
             btn.setOnClickListener {
-                state = nextState
+                setStateAnim(nextState)
             }
 
-            onStateChangedListener = {
-                println(it)
+            scbtn.setOnClickListener {
+                state = prevState
             }
         }
-
-        bottomSheet.onPositionChangedListener = {position ->
-            println(position)
-        }
-
-
     }
 }

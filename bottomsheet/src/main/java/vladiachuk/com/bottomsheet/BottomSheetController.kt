@@ -5,7 +5,6 @@ import android.animation.ValueAnimator
 import android.util.Log
 import android.util.TypedValue
 import android.view.View
-import android.view.animation.BounceInterpolator
 import android.view.animation.DecelerateInterpolator
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -13,7 +12,7 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-open class BottomSheetController(private val bs: BottomSheet) {
+open class BottomSheetController(private val bs: BottomSheet, private val starState: State? = null) {
     private val TAG = "BottomSheetController"
 
     private val MAX_DURATION = 500
@@ -27,14 +26,17 @@ open class BottomSheetController(private val bs: BottomSheet) {
 
 
     var FAST_SPEED =
-        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2f, bs.resources.displayMetrics)
+        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2.2f, bs.resources.displayMetrics)
     var MEDIUM_SPEED =
-        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 0.15f, bs.resources.displayMetrics)
-    var SMALL_SPEED = 0.05f
+        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 0.40f, bs.resources.displayMetrics)
+    var SMALL_SPEED =
+        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 0.07f, bs.resources.displayMetrics)
 
     var MAX_PREV_DISTANCE =
         TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 60f, bs.resources.displayMetrics)
     var MAX_PREV_PERCENTAGE = 0.3f
+
+    var STOP_TIME = 300
 
 
     private var anim = ValueAnimator().apply {
@@ -48,6 +50,10 @@ open class BottomSheetController(private val bs: BottomSheet) {
 
     private var mState = EXPANDED_STATE
         set(value) {
+            if (value != field) {
+                mPrevState = field
+            }
+
             field = value
             Log.d(TAG, "State $value")
             onStateChangedListener?.invoke(value)
@@ -55,10 +61,20 @@ open class BottomSheetController(private val bs: BottomSheet) {
     var state
         set(value) {
             mState = value
-            if (bs.position != value.position)
-                setPositionAnim(value.position)
+            bs.position = value.position
         }
         get() = mState
+
+    val nextState: State
+        get() {
+            val nextStateId = statesGraph.first { it[0] == mState.id }[1]
+            return possibleStates.first { it.id == nextStateId }
+        }
+
+    private var mPrevState: State = mState
+    val prevState: State
+        get() = mPrevState
+
 
     var possibleStates: ArrayList<State> = ArrayList()
     var statesGraph: ArrayList<IntArray> = ArrayList()
@@ -66,6 +82,9 @@ open class BottomSheetController(private val bs: BottomSheet) {
     var onStateChangedListener: ((state: State) -> Unit)? = null
 
     init {
+        Log.d(TAG, "Slow: $SMALL_SPEED")
+        Log.d(TAG, "Medium: $MEDIUM_SPEED")
+        Log.d(TAG, "FAST: $FAST_SPEED")
         @Suppress("LeakingThis")
         bs.touchController.addOnStopDraggingListener(this::onStop)
     }
@@ -74,8 +93,9 @@ open class BottomSheetController(private val bs: BottomSheet) {
     /**
      * Private methods
      */
-    private fun onStop(speed: Float) {
-        Log.d(TAG, "OnStop speed: $speed")
+    private fun onStop(speed: Float, stopTime: Int) {
+        Log.d(TAG, "======OnStop======")
+        Log.d(TAG, "OnStop speed: $speed  stopTime: $stopTime")
 
         var nextState = this.nextState
         val bsPos = bs.position
@@ -87,9 +107,9 @@ open class BottomSheetController(private val bs: BottomSheet) {
         val probableState = possibleStates.firstOrNull { it.position == bsPos }
 
         nextState = when {
-            //no need to change smth
+            //BS is on right place already
             (probableState != null) -> {
-                Log.d(TAG, "No need to change")
+                Log.d(TAG, "BS is on right place already")
                 mState = probableState
                 return
             }
@@ -105,23 +125,23 @@ open class BottomSheetController(private val bs: BottomSheet) {
             }
 
             //closest
-            (absSpeed < SMALL_SPEED) -> {
+            (stopTime > STOP_TIME || absSpeed <= SMALL_SPEED) -> {
                 Log.d(TAG, "Closest")
                 possibleStates.minBy { abs(bsPos - it.position) } ?: mState
             }
 
-            //previous
+            //current
             ((absSpeed <= MEDIUM_SPEED
                     && delta < MAX_PREV_DISTANCE
                     && delta < MAX_PREV_PERCENTAGE * abs(mState.position - nextState.position))
                     || (bsPos > mState.position && speed < 0)
                     || (bsPos < mState.position && speed >= 0)
                     ) -> {
-                Log.d(TAG, "Previous")
+                Log.d(TAG, "Current")
                 mState
             }
 
-            //next closes
+            //next closest
             (!(bsPos > min(mState.position, nextState.position)
                     && bsPos < max(mState.position, nextState.position))
                     ) -> {
@@ -141,7 +161,7 @@ open class BottomSheetController(private val bs: BottomSheet) {
             }
         }
 
-        state = nextState
+        setStateAnim(nextState)
     }
 
 
@@ -180,6 +200,13 @@ open class BottomSheetController(private val bs: BottomSheet) {
     /**
      * Public methods
      */
+    fun onFirstLoad() {
+        HALF_EXPANDED_STATE.position = bs.height / 2f
+        HIDDEN_STATE.position = bs.height.toFloat()
+
+        state = COLLAPSED_STATE
+    }
+
     fun createState(position: Float): State {
         return State(maxStateId++, position)
     }
@@ -192,15 +219,15 @@ open class BottomSheetController(private val bs: BottomSheet) {
         return createState(bs.findViewById<View>(viewId))
     }
 
-    val nextState: State
-        get() {
-            val nextStateId = statesGraph.first { it[0] == mState.id }[1]
-            return possibleStates.first { it.id == nextStateId }
-        }
-
-    suspend fun setStateSuspend(state: State) {
+    suspend fun setStateAnimSuspend(state: State) {
         mState = state
         if (bs.position != state.position)
             setPositionAnimSuspend(state.position)
+    }
+
+    fun setStateAnim(state: State) {
+        mState = state
+        if (bs.position != state.position)
+            setPositionAnim(state.position)
     }
 }
