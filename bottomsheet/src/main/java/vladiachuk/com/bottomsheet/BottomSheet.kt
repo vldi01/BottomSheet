@@ -113,6 +113,8 @@ open class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLay
 
             controller?.reload()
             isFirstLoaded = false
+        } else if (controller != null){
+            position = controller!!.state.position
         }
     }
 
