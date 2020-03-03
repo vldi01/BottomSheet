@@ -202,7 +202,7 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
      */
     fun reload() {
         COLLAPSED_STATE.position = bs.maxPosition
-        EXPANDED_STATE.position = bs.maxPosition
+        EXPANDED_STATE.position = bs.minPosition
         HALF_EXPANDED_STATE.position = bs.height / 2f
         HIDDEN_STATE.position = bs.height.toFloat()
 
