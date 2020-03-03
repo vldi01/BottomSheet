@@ -15,8 +15,8 @@ import kotlin.math.min
 open class BottomSheetController(private val bs: BottomSheet, private val starState: State? = null) {
     private val TAG = "BottomSheetController"
 
-    private val MAX_DURATION = 500
-    private val MIN_DURATION = 50
+    var MAX_DURATION = 500
+    var MIN_DURATION = 50
 
 
     val COLLAPSED_STATE = createState(bs.maxPosition)

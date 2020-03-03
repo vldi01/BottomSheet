@@ -141,15 +141,14 @@ open class TouchController(private val bs: BottomSheet) {
                 return
             }
 
-            val lastSpeed = dy / timeDelta
+            lastSpeed = dy / timeDelta
 
             lastSpeeds[lastSpeedsIndex++ % MAX_LAST_SPEEDS_COUNT] = abs(lastSpeed)
             if (lastSpeedsCount < MAX_LAST_SPEEDS_COUNT) lastSpeedsCount++
 
             lastTime = curTime
-            this.lastSpeed = lastSpeeds.sum()/lastSpeedsCount*(lastSpeed / abs(lastSpeed))
 
-            onDragListeners.forEach { it.invoke(this.lastSpeed) }
+            onDragListeners.forEach { it.invoke(lastSpeed) }
         }
     }
 
@@ -158,7 +157,8 @@ open class TouchController(private val bs: BottomSheet) {
             isDragging = false
             val timeDelta = System.currentTimeMillis() - lastTime
 
-            onStopListeners.forEach { it.invoke(lastSpeed, timeDelta.toInt()) }
+            val speed =  lastSpeeds.sum()/lastSpeedsCount*(lastSpeed / abs(lastSpeed))
+            onStopListeners.forEach { it.invoke(speed, timeDelta.toInt()) }
 
             lastSpeedsCount = 0
             lastSpeedsIndex = 0
