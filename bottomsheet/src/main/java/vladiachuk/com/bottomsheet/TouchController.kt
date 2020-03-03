@@ -1,6 +1,5 @@
 package vladiachuk.com.bottomsheet
 
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.view.ViewCompat
@@ -16,19 +15,18 @@ open class TouchController(private val bs: BottomSheet) {
     private val onDragListeners = ArrayList<(speed: Float) -> Unit>()
     private val onStopListeners = ArrayList<(speed: Float, stopTime: Int) -> Unit>()
 
-    /**
-     * Private methods
-     */
-    private var touchDown = 0f
 
-    private fun delegateDrag(e: MotionEvent) {
+    private var touchDown = 0f
+    private var badTouchDown = false
+
+    fun delegateDrag(e: MotionEvent) {
         when (e.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 touchDown = e.y
-                if (e.y < bs.position) touchDown = -1f
+                badTouchDown = e.y < bs.position
             }
             MotionEvent.ACTION_MOVE -> {
-                if (touchDown < 0) {
+                if (badTouchDown) {
                     onNotDrag()
                     return
                 }
@@ -36,11 +34,9 @@ open class TouchController(private val bs: BottomSheet) {
                 when {
                     bs.position + dy < bs.minPosition -> {
                         bs.position = bs.minPosition
-                        onNotDrag()
                     }
                     bs.position + dy > bs.maxPosition -> {
                         bs.position = bs.maxPosition
-                        onNotDrag()
                     }
                     else -> {
                         bs.translate(dy.toInt())

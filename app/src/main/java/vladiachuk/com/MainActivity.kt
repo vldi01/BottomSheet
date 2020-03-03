@@ -21,12 +21,11 @@ class MainActivity : AppCompatActivity() {
             bottomSheet.post {
                 cusState = createState(cus)
 
-                possibleStates = arrayListOf(COLLAPSED_STATE, EXPANDED_STATE, HALF_EXPANDED_STATE, cusState)
+                possibleStates = arrayListOf(COLLAPSED_STATE, HALF_EXPANDED_STATE, cusState)
                 statesGraph = arrayListOf(
                     intArrayOf(COLLAPSED_STATE.id, HALF_EXPANDED_STATE.id),
                     intArrayOf(HALF_EXPANDED_STATE.id, COLLAPSED_STATE.id),
-                    intArrayOf(EXPANDED_STATE.id, cusState.id),
-                    intArrayOf(cusState.id, EXPANDED_STATE.id)
+                    intArrayOf(cusState.id, HALF_EXPANDED_STATE.id)
                 )
                 state = cusState
             }
