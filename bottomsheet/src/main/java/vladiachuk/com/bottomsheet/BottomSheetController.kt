@@ -28,9 +28,9 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
     var FAST_SPEED =
         TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2.2f, bs.resources.displayMetrics)
     var MEDIUM_SPEED =
-        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 0.40f, bs.resources.displayMetrics)
+        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 0.4f, bs.resources.displayMetrics)
     var SMALL_SPEED =
-        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 0.07f, bs.resources.displayMetrics)
+        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 0.1f, bs.resources.displayMetrics)
 
     var MAX_PREV_DISTANCE =
         TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 60f, bs.resources.displayMetrics)
@@ -67,8 +67,7 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
 
     val nextState: State
         get() {
-            val nextStateId = statesGraph.first { it[0] == mState.id }[1]
-            return possibleStates.first { it.id == nextStateId }
+            return statesGraph.firstOrNull { it[0] == mState }?.get(1) ?: mState
         }
 
     private var mPrevState: State = mState
@@ -77,7 +76,7 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
 
 
     var possibleStates: ArrayList<State> = ArrayList()
-    var statesGraph: ArrayList<IntArray> = ArrayList()
+    var statesGraph: ArrayList<Array<State>> = ArrayList()
 
     var onStateChangedListener: ((state: State) -> Unit)? = null
 
@@ -165,18 +164,18 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
     }
 
 
-    private fun getAnim(toPos: Float): ValueAnimator {
+    private fun setupAnim(toPos: Float) {
         val bsPos = bs.position
         anim.setFloatValues(bs.position, toPos)
         anim.duration =
             (abs(bsPos - toPos) / (bs.height - bs.peekHeight) * (MAX_DURATION - MIN_DURATION) + MIN_DURATION).toLong()
         anim.removeAllListeners()
-        return anim
     }
 
     private fun setPositionAnim(pos: Float) {
-        val an = getAnim(pos)
-        an.start()
+        setupAnim(pos)
+        anim.cancel()
+        anim.start()
     }
 
     private suspend fun setPositionAnimSuspend(pos: Float) {

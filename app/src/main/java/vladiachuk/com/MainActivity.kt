@@ -23,10 +23,10 @@ class MainActivity : AppCompatActivity() {
 
                 possibleStates = arrayListOf(COLLAPSED_STATE, HALF_EXPANDED_STATE, EXPANDED_STATE, cusState)
                 statesGraph = arrayListOf(
-                    intArrayOf(COLLAPSED_STATE.id, HALF_EXPANDED_STATE.id),
-                    intArrayOf(HALF_EXPANDED_STATE.id, COLLAPSED_STATE.id),
-                    intArrayOf(EXPANDED_STATE.id, cusState.id),
-                    intArrayOf(cusState.id, EXPANDED_STATE.id)
+                    arrayOf(COLLAPSED_STATE, HALF_EXPANDED_STATE),
+                    arrayOf(HALF_EXPANDED_STATE, COLLAPSED_STATE),
+                    arrayOf(EXPANDED_STATE, cusState),
+                    arrayOf(cusState, EXPANDED_STATE)
                 )
                 state = cusState
             }
