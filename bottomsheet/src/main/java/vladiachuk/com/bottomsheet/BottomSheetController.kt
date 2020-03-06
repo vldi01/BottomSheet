@@ -173,8 +173,8 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
     }
 
     private fun setPositionAnim(pos: Float) {
-        setupAnim(pos)
         anim.cancel()
+        setupAnim(pos)
         anim.start()
     }
 
