@@ -99,6 +99,7 @@ open class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLay
      */
     private var isFirstLoaded = true
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        val positionBefore = position
         super.onLayout(changed, left, top, right, bottom)
         if (isFirstLoaded) {
             Log.d(TAG, "OnFirstLoaded")
@@ -113,8 +114,8 @@ open class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLay
 
             controller?.reload()
             isFirstLoaded = false
-        } else if (controller != null){
-            position = controller!!.state.position
+        } else {
+            position = positionBefore
         }
     }
 
