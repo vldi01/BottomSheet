@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -56,6 +57,9 @@ class SecondFragment: Fragment(R.layout.second_frame) {
 
         override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
             holder.view.textView.text = myDataset[position]
+            holder.view.setOnClickListener {
+                Toast.makeText(holder.view.context, myDataset[position], Toast.LENGTH_SHORT).show()
+            }
         }
 
         override fun getItemCount() = myDataset.size

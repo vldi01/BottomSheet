@@ -3,6 +3,8 @@ package vladiachuk.com.bottomsheet
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.view.ViewCompat
+import androidx.core.view.marginTop
+import androidx.recyclerview.widget.RecyclerView
 import kotlin.math.abs
 
 open class TouchController(private val bs: BottomSheet) {
@@ -70,7 +72,9 @@ open class TouchController(private val bs: BottomSheet) {
         if (bs.position - dy < bs.minPosition) {
             bs.position = bs.minPosition
             isScrolling = false
-        } else if (target!!.scrollY == 0) {
+        } else if ((target !is RecyclerView && target!!.scrollY == 0)
+            || (target is RecyclerView && isRecyclerScrollZero(target))
+        ) {
             isScrolling = true
             consumed!![1] = dy
 
@@ -85,7 +89,10 @@ open class TouchController(private val bs: BottomSheet) {
     }
 
     fun onNestedPreFling(target: View?): Boolean {
-        return target?.scrollY == 0
+        return if (target !is RecyclerView)
+            target?.scrollY == 0
+        else
+            isRecyclerScrollZero(target)
     }
 
 
@@ -109,6 +116,7 @@ open class TouchController(private val bs: BottomSheet) {
             MotionEvent.ACTION_DOWN -> return false
             MotionEvent.ACTION_MOVE -> if (touchDown < 0) return false
             MotionEvent.ACTION_UP -> return false
+            MotionEvent.ACTION_CANCEL -> return false
         }
         return true
     }
@@ -153,7 +161,7 @@ open class TouchController(private val bs: BottomSheet) {
             isDragging = false
             val timeDelta = System.currentTimeMillis() - lastTime
 
-            val speed =  lastSpeeds.sum()/lastSpeedsCount*(lastSpeed / abs(lastSpeed))
+            val speed = lastSpeeds.sum() / lastSpeedsCount * (lastSpeed / abs(lastSpeed))
             onStopListeners.forEach { it.invoke(speed, timeDelta.toInt()) }
 
             lastSpeedsCount = 0
@@ -167,11 +175,25 @@ open class TouchController(private val bs: BottomSheet) {
      */
 
     fun addOnStartDraggingListener(listener: () -> Unit) = onStartListeners.add(listener)
-    fun addOnStopDraggingListener(listener: (speed: Float, stopTime: Int) -> Unit) = onStopListeners.add(listener)
+
+    fun addOnStopDraggingListener(listener: (speed: Float, stopTime: Int) -> Unit) =
+        onStopListeners.add(listener)
+
     fun addOnDragListener(listener: (speed: Float) -> Unit) = onDragListeners.add(listener)
 
     fun removeOnStartDraggingListener(listener: () -> Unit) = onStartListeners.remove(listener)
-    fun removeOnStopDraggingListener(listener: (speed: Float, stopTime: Int) -> Unit) = onStopListeners.remove(listener)
+    fun removeOnStopDraggingListener(listener: (speed: Float, stopTime: Int) -> Unit) =
+        onStopListeners.remove(listener)
+
     fun removeOnDragListener(listener: (speed: Float) -> Unit) = onDragListeners.remove(listener)
 
+
+    /**
+     * Private methods
+     */
+    private fun isRecyclerScrollZero(target: RecyclerView): Boolean {
+        val view = target.layoutManager?.findViewByPosition(0)
+        return if (view != null) (view.y - target.paddingTop - view.marginTop) >= 0f
+        else false
+    }
 }
