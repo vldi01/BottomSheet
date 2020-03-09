@@ -3,24 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#22222222">
-
-    <Button
-        android:id="@+id/btn"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:text="Click"
-        android:layout_margin="10dp"/>
-
-    <View
-        android:id="@+id/cus"
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:background="#A6FF4D"
-        android:layout_marginTop="20dp"
-        android:elevation="6dp"
-        tools:targetApi="lollipop" />
+    android:layout_height="match_parent">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"

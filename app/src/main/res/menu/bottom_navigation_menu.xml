@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/first_action"
+        android:title="First"
+        android:icon="@drawable/ic_favorite"/>
+
+    <item android:id="@+id/second_action"
+        android:title="Second"
+        android:icon="@drawable/ic_filter_vintage"/>
+
+</menu>
