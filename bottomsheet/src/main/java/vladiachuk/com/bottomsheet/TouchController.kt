@@ -9,6 +9,7 @@ import kotlin.math.abs
 
 open class TouchController(private val bs: BottomSheet) {
     private val MAX_LAST_SPEEDS_COUNT = 5
+    var MIN_DRAG_PIXELS = 10
 
     private var isScrolling = false
     private var isDragging = false
@@ -21,7 +22,7 @@ open class TouchController(private val bs: BottomSheet) {
     private var touchDown = 0f
     private var badTouchDown = false
 
-    fun delegateDrag(e: MotionEvent) {
+    fun delegateDrag(e: MotionEvent): Boolean {
         when (e.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 touchDown = e.y
@@ -30,9 +31,10 @@ open class TouchController(private val bs: BottomSheet) {
             MotionEvent.ACTION_MOVE -> {
                 if (badTouchDown) {
                     onNotDrag()
-                    return
+                    return false
                 }
                 val dy = e.y - touchDown
+                if (!isDragging && abs(dy) < MIN_DRAG_PIXELS) return false
                 when {
                     bs.position + dy < bs.minPosition -> {
                         bs.position = bs.minPosition
@@ -50,8 +52,10 @@ open class TouchController(private val bs: BottomSheet) {
             }
             MotionEvent.ACTION_UP -> {
                 onNotDrag()
+                return false
             }
         }
+        return true
     }
 
 
@@ -111,14 +115,14 @@ open class TouchController(private val bs: BottomSheet) {
 
     fun onInterceptTouch(e: MotionEvent): Boolean {
         if (isScrolling) return false
-        delegateDrag(e)
+        val isDrag = delegateDrag(e)
         when (e.actionMasked) {
             MotionEvent.ACTION_DOWN -> return false
             MotionEvent.ACTION_MOVE -> if (touchDown < 0) return false
             MotionEvent.ACTION_UP -> return false
             MotionEvent.ACTION_CANCEL -> return false
         }
-        return true
+        return isDrag
     }
 
     /**
