@@ -196,6 +196,8 @@ open class TouchController(private val bs: BottomSheet) {
      * Private methods
      */
     private fun isRecyclerScrollZero(target: RecyclerView): Boolean {
+        if (target.childCount == 0) return true
+
         val view = target.layoutManager?.findViewByPosition(0)
         return if (view != null) (view.y - target.paddingTop - view.marginTop) >= 0f
         else false
