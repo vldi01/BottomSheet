@@ -2,7 +2,7 @@
 # BottomSheet Library 
 It`s an Android library writed in **[Kotlin](https://github.com/JetBrains/kotlin)** that allows you to add BottomSheet layout to your Android project quiqly and easy.
 
-### Gradle / Maven dependency
+### Gradle / Maven dependency [![](https://jitpack.io/v/DiachukVlad/BottomSheet.svg)](https://jitpack.io/#DiachukVlad/BottomSheet)
 At the moment we do not have a publishing mechanism to a maven repository so the easiest way to add the library to your app is via a JitPack Dependency 
 
 ```gradle
@@ -11,7 +11,7 @@ repositories {
     maven { url "https://jitpack.io" }
 }
 dependencies {
-    compile 'com.github.nextcloud:android-library:-SNAPSHOT'
+    implementation 'com.github.DiachukVlad:BottomSheet:[version]'
 }
 ```
 
