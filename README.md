@@ -17,7 +17,7 @@ dependencies {
 ```
 
 ##  License
-Nextcloud Android Library is available under MIT license. See [LICENSE](https://github.com/DiachukVlad/BottomSheet/blob/master/LICENSE) with the full license text. 
+BottomSheet Android Library is available under MIT license. See [LICENSE](https://github.com/DiachukVlad/BottomSheet/blob/master/LICENSE) with the full license text. 
 
 ## Compatibility
-Nextcloud Android library is valid for Android version 3.0 and up (with ```android:minSdkVersion="11"``` and ```android:targetSdkVersion="24"```).
+BottomSheet Android library is valid for Android version 4.4 and up (with ```android:minSdkVersion="19"``` and ```android:targetSdkVersion="29"```).
