@@ -6,6 +6,7 @@ import android.util.Log
 import android.util.TypedValue
 import android.view.View
 import android.view.animation.DecelerateInterpolator
+import java.lang.Exception
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.math.abs
@@ -172,25 +173,31 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
         anim.removeAllListeners()
     }
 
-    private fun setPositionAnim(pos: Float) {
+    private fun setPositionAnim(pos: Float, duration: Int = -1) {
         anim.cancel()
         setupAnim(pos)
+        if (duration > 0)
+            anim.duration = duration.toLong()
         anim.start()
     }
 
-    private suspend fun setPositionAnimSuspend(pos: Float) {
-        setPositionAnim(pos)
+    private suspend fun setPositionAnimSuspend(pos: Float, duration: Int = -1) {
+        setPositionAnim(pos, duration)
         suspendCoroutine<Unit> {
             anim.addListener(object : Animator.AnimatorListener {
                 override fun onAnimationRepeat(animation: Animator?) {}
                 override fun onAnimationStart(animation: Animator?) {}
 
                 override fun onAnimationEnd(animation: Animator?) {
-                    it.resume(Unit)
+                    try {
+                        it.resume(Unit)
+                    }catch (ignore: Exception) {}
                 }
 
                 override fun onAnimationCancel(animation: Animator?) {
-                    it.resume(Unit)
+                    try {
+                        it.resume(Unit)
+                    }catch (ignore: Exception) {}
                 }
             })
         }
@@ -220,15 +227,15 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
         return createState(bs.findViewById<View>(viewId))
     }
 
-    suspend fun setStateAnimSuspend(state: State) {
+    suspend fun setStateAnimSuspend(state: State, duration: Int = -1) {
         mState = state
         if (bs.position != state.position)
-            setPositionAnimSuspend(state.position)
+            setPositionAnimSuspend(state.position, duration)
     }
 
-    fun setStateAnim(state: State) {
+    fun setStateAnim(state: State, duration: Int = -1) {
         mState = state
         if (bs.position != state.position)
-            setPositionAnim(state.position)
+            setPositionAnim(state.position, duration)
     }
 }
