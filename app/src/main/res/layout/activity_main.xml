@@ -7,11 +7,6 @@
     tools:context=".MainActivity"
     android:background="@android:color/darker_gray">
 
-
-
-
-
-
     <vladiachuk.com.bottomsheet.BottomSheet
         android:id="@+id/bottomSheet"
         android:layout_width="match_parent"
@@ -45,7 +40,4 @@
             app:itemTextColor="@color/white"
             app:menu="@menu/bottom_navigation_menu"/>
     </vladiachuk.com.bottomsheet.friendlyLayouts.BSFriendlyFrameLayout>
-
-
-
 </androidx.constraintlayout.widget.ConstraintLayout>

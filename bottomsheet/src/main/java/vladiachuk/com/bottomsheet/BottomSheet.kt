@@ -72,7 +72,7 @@ open class BottomSheet : FrameLayout {
         attrs: AttributeSet? = null,
         defStyleAttr: Int = 0
     ): super(context, attrs, defStyleAttr) {
-        initializate(attrs)
+        initialize(attrs)
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -82,10 +82,10 @@ open class BottomSheet : FrameLayout {
         defStyleAttr: Int,
         defStyleRes: Int
     ): super(context, attrs, defStyleAttr, defStyleRes) {
-        initializate(attrs)
+        initialize(attrs)
     }
 
-    fun initializate(attrs: AttributeSet?) {
+    private fun initialize(attrs: AttributeSet?) {
         setupAttributes(attrs)
         inflateLayout()
 
