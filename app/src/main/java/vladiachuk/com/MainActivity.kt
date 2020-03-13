@@ -1,7 +1,6 @@
 package vladiachuk.com
 
 import android.os.Bundle
-import android.os.Handler
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
@@ -21,12 +20,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        Handler().postDelayed({
-            bottomSheet.controller!!.run {
-                setStateAnim(nextState, 1500)
-            }
-        }, 1000)
-
         bottomSheet.controller = BottomSheetController(bottomSheet)
 
         firstState()
@@ -34,6 +27,12 @@ class MainActivity : AppCompatActivity() {
         bottom_navigation.setOnNavigationItemSelectedListener(this::onBottomNavigationClick)
 
         btn.setOnClickListener { nextState() }
+
+        bottomSheet.post {
+            bottomSheet.controller!!.run {
+                setStateAnim(HALF_EXPANDED_STATE, 1000)
+            }
+        }
     }
 
     override fun onBackPressed() {

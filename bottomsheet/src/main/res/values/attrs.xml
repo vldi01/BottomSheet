@@ -4,4 +4,8 @@
         <attr name="layout" format="reference"/>
         <attr name="peekHeight" format="dimension"/>
     </declare-styleable>
+
+    <declare-styleable name="BSFriendlyLinearLayout">
+        <attr name="bottom_sheet_id" format="reference"/>
+    </declare-styleable>
 </resources>

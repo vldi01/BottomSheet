@@ -65,22 +65,22 @@ open class TouchController(private val bs: BottomSheet) {
     /**
      * Touch events
      */
-    fun onTouch(e: MotionEvent): Boolean {
+    fun onTouch(e: MotionEvent, force: Boolean = false): Boolean {
         when (e.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                if (e.y < bs.position) return false
+                if (!force && e.y < bs.position) return false
             }
         }
-        delegateDrag(e)
+        delegateDrag(e, force)
         return true
     }
 
-    fun onInterceptTouch(e: MotionEvent): Boolean {
+    fun onInterceptTouch(e: MotionEvent, force: Boolean = false): Boolean {
         if (isScrolling) return false
-        val isDrag = delegateDrag(e)
+        val isDrag = delegateDrag(e, force)
         when (e.actionMasked) {
             MotionEvent.ACTION_DOWN -> return false
-            MotionEvent.ACTION_MOVE -> if (touchDown < 0) return false
+            MotionEvent.ACTION_MOVE -> if (!force && touchDown < 0) return false
             MotionEvent.ACTION_UP -> return false
             MotionEvent.ACTION_CANCEL -> return false
         }
@@ -97,42 +97,6 @@ open class TouchController(private val bs: BottomSheet) {
     private var lastSpeedsCount = 0
     private var lastSpeedsIndex = 0
 
-
-    private fun delegateDrag(e: MotionEvent): Boolean {
-        when (e.actionMasked) {
-            MotionEvent.ACTION_DOWN -> {
-                touchDown = e.y
-                badTouchDown = e.y < bs.position
-            }
-            MotionEvent.ACTION_MOVE -> {
-                if (badTouchDown) {
-                    onNotDrag()
-                    return false
-                }
-                val dy = e.y - touchDown
-                if (!isDragging && abs(dy) < MIN_DRAG_PIXELS) return false
-                when {
-                    bs.position + dy < bs.minPosition -> {
-                        bs.position = bs.minPosition
-                    }
-                    bs.position + dy > bs.maxPosition -> {
-                        bs.position = bs.maxPosition
-                    }
-                    else -> {
-                        bs.translate(dy.toInt())
-                        onDrag(dy)
-                    }
-                }
-
-                touchDown = e.y
-            }
-            MotionEvent.ACTION_UP -> {
-                onNotDrag()
-                return false
-            }
-        }
-        return true
-    }
 
     private fun onDrag(dy: Float) {
         if (!isDragging) {
@@ -200,4 +164,43 @@ open class TouchController(private val bs: BottomSheet) {
         else false
     }
 
+
+    /**
+     * Public methods
+     */
+    fun delegateDrag(e: MotionEvent, force: Boolean = false): Boolean {
+        when (e.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                touchDown = e.y
+                badTouchDown = e.y < bs.position
+            }
+            MotionEvent.ACTION_MOVE -> {
+                if (!force && badTouchDown) {
+                    onNotDrag()
+                    return false
+                }
+                val dy = e.y - touchDown
+                if (!isDragging && abs(dy) < MIN_DRAG_PIXELS) return false
+                when {
+                    bs.position + dy < bs.minPosition -> {
+                        bs.position = bs.minPosition
+                    }
+                    bs.position + dy > bs.maxPosition -> {
+                        bs.position = bs.maxPosition
+                    }
+                    else -> {
+                        bs.translate(dy.toInt())
+                        onDrag(dy)
+                    }
+                }
+
+                touchDown = e.y
+            }
+            MotionEvent.ACTION_UP -> {
+                onNotDrag()
+                return false
+            }
+        }
+        return true
+    }
 }
