@@ -5,7 +5,17 @@
         <attr name="peekHeight" format="dimension"/>
     </declare-styleable>
 
+    <attr name="bottom_sheet_id" format="reference"/>
+
     <declare-styleable name="BSFriendlyLinearLayout">
-        <attr name="bottom_sheet_id" format="reference"/>
+        <attr name="bottom_sheet_id"/>
+    </declare-styleable>
+
+    <declare-styleable name="BSFriendlyFrameLayout">
+        <attr name="bottom_sheet_id"/>
+    </declare-styleable>
+
+    <declare-styleable name="BSFriendlyConstraintLayout">
+        <attr name="bottom_sheet_id"/>
     </declare-styleable>
 </resources>

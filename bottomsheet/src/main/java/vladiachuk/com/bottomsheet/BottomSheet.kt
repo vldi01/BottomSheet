@@ -1,7 +1,9 @@
 package vladiachuk.com.bottomsheet
 
 import android.annotation.SuppressLint
+import android.annotation.TargetApi
 import android.content.Context
+import android.os.Build
 import android.util.AttributeSet
 import android.util.Log
 import android.view.LayoutInflater
@@ -10,7 +12,7 @@ import android.view.View
 import android.widget.FrameLayout
 
 
-open class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLayout(context, attrs) {
+open class BottomSheet : FrameLayout {
     private val TAG = "BottomSheet"
 
     private var mLayoutId: Int? = null
@@ -58,13 +60,32 @@ open class BottomSheet(context: Context, attrs: AttributeSet? = null) : FrameLay
 
     var onPositionChangedListener: ((position: Float) -> Unit)? = null
 
-    var touchController: TouchController
+    lateinit var touchController: TouchController
     var controller: BottomSheetController? = null
 
     /**
      * Initialization
      */
-    init {
+    @JvmOverloads
+    constructor(
+        context: Context,
+        attrs: AttributeSet? = null,
+        defStyleAttr: Int = 0
+    ): super(context, attrs, defStyleAttr) {
+        initializate(attrs)
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    constructor(
+        context: Context,
+        attrs: AttributeSet?,
+        defStyleAttr: Int,
+        defStyleRes: Int
+    ): super(context, attrs, defStyleAttr, defStyleRes) {
+        initializate(attrs)
+    }
+
+    fun initializate(attrs: AttributeSet?) {
         setupAttributes(attrs)
         inflateLayout()
 

@@ -29,7 +29,7 @@
             android:textAlignment="center"/>
     </vladiachuk.com.bottomsheet.BottomSheet>
 
-    <vladiachuk.com.bottomsheet.friendlyLayouts.BSFriendlyLinearLayout
+    <vladiachuk.com.bottomsheet.friendlyLayouts.BSFriendlyFrameLayout
         android:id="@+id/qwe"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -44,7 +44,7 @@
             app:itemIconTint="@color/white"
             app:itemTextColor="@color/white"
             app:menu="@menu/bottom_navigation_menu"/>
-    </vladiachuk.com.bottomsheet.friendlyLayouts.BSFriendlyLinearLayout>
+    </vladiachuk.com.bottomsheet.friendlyLayouts.BSFriendlyFrameLayout>
 
 
 
