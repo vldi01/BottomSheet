@@ -21,12 +21,12 @@ dependencies {
 ### How to use
 * In your layout write
 ```xml
- <vladiachuk.com.bottomsheet.BottomSheet
-        android:id="@+id/bottomSheet"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout="@layout/layout"
-        app:peekHeight="16dp"/>
+<vladiachuk.com.bottomsheet.BottomSheet
+    android:id="@+id/bottomSheet"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout="@layout/layout"
+    app:peekHeight="16dp"/>
 ```
 
  
@@ -73,18 +73,21 @@ GlobalScope.launch(Dispatchers.Main) {
 * Another cool thing is BottomSheet friendly layouts. If you want E.g. drag bottom sheet when you move finger on BottomNavigationView you can put BottomNavigationView inside the BottomNavigationView. **It\`s important to set app:bottom_sheet_id attribute.**
 ```xml
 <vladiachuk.com.bottomsheet.friendlyLayouts.BSFriendlyFrameLayout
+    android:id="@+id/qwe"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:layout_constraintLeft_toLeftOf="parent"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:bottom_sheet_id="@id/bottomSheet">
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:bottom_sheet_id="@id/bottomSheet">
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:id="@+id/bottom_navigation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/colorPrimary"
-            app:itemIconTint="@color/white"
-            app:itemTextColor="@color/white"
-            app:menu="@menu/bottom_navigation_menu"/>
-    </vladiachuk.com.bottomsheet.friendlyLayouts.BSFriendlyFrameLayout>
+        android:background="@color/colorPrimary"
+        app:itemIconTint="@color/white"
+        app:itemTextColor="@color/white"
+        app:menu="@menu/bottom_navigation_menu"/>
+</vladiachuk.com.bottomsheet.friendlyLayouts.BSFriendlyFrameLayout>
 ```
 
 * Other possibilities of BottomSheet library you can see in app module in repository
