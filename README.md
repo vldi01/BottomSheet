@@ -70,7 +70,7 @@ GlobalScope.launch(Dispatchers.Main) {
 }
 ```
 
-* Another cool thing is BottomSheet friendly layouts. If you want E.g. drag bottom sheet when you move finger on BottomNavigationView you can put BottomNavigationView inside the BottomNavigationView. **It\`s important to set app:bottom_sheet_id attribute.**
+* Another cool thing is BottomSheet friendly layouts. If you want E.g. drag bottom sheet when you move finger on BottomNavigationView you can put BottomNavigationView inside the BSFriendlyFrameLayout. **It\`s important to set app:bottom_sheet_id attribute.**
 ```xml
 <vladiachuk.com.bottomsheet.friendlyLayouts.BSFriendlyFrameLayout
     android:id="@+id/qwe"
