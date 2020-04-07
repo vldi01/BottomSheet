@@ -1,6 +1,6 @@
 [![](https://jitpack.io/v/DiachukVlad/BottomSheet.svg)](https://jitpack.io/#DiachukVlad/BottomSheet) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 # BottomSheet Library 
-It\`s an Android library writed in **[Kotlin](https://github.com/JetBrains/kotlin)** that allows you to add BottomSheet layout to your Android project quiqly and easy.
+It\`s an Android library writed in **[Kotlin](https://github.com/JetBrains/kotlin)** that allows you to add BottomSheet layout to your Android project quickly and easy.
  
 ![hi](https://diachukvlad.github.io/files/BottomSheet.gif)
 
