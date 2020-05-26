@@ -43,7 +43,7 @@ open class BottomSheet : FrameLayout {
         set(value) {
             field = value
             Log.d(TAG, "Min position $value")
-            if (position > value) position = value
+            if (position < value) position = value
         }
 
     var peekHeight = 0f
