@@ -135,7 +135,7 @@ open class BottomSheet : FrameLayout {
 
             controller?.reload()
             isFirstLoaded = false
-        } else {
+        } else if(position != positionBefore){
             position = positionBefore
         }
     }
