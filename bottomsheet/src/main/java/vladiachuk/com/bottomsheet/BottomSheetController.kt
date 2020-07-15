@@ -40,6 +40,9 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
     var STOP_TIME = 300
 
 
+    var onReload: (() -> Unit)? = null
+
+
     private var anim = ValueAnimator().apply {
         interpolator = DecelerateInterpolator(1.5f)
         addUpdateListener {
@@ -213,6 +216,7 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
         HIDDEN_STATE.position = bs.height.toFloat()
 
         state = COLLAPSED_STATE
+        onReload?.invoke()
     }
 
     fun createState(position: Float): State {

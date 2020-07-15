@@ -10,6 +10,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import vladiachuk.com.bottomsheet.BottomSheetController
 
+
 class MainActivity : AppCompatActivity() {
 
     val firstFragment = FirstFragment()
@@ -33,6 +34,8 @@ class MainActivity : AppCompatActivity() {
                 setStateAnim(HALF_EXPANDED_STATE, 1000)
             }
         }
+
+        bottomSheet.reactToOrientationEvent()
     }
 
     override fun onBackPressed() {

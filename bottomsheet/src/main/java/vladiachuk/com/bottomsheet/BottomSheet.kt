@@ -3,17 +3,25 @@ package vladiachuk.com.bottomsheet
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.content.Context
+import android.hardware.SensorManager
 import android.os.Build
 import android.util.AttributeSet
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
+import android.view.OrientationEventListener
 import android.view.View
 import android.widget.FrameLayout
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 open class BottomSheet : FrameLayout {
     private val TAG = "BottomSheet"
+
+    var orientationListener: OrientationEventListener? = null
 
     private var mLayoutId: Int? = null
     var layoutId: Int?
@@ -124,20 +132,29 @@ open class BottomSheet : FrameLayout {
         super.onLayout(changed, left, top, right, bottom)
         if (isFirstLoaded) {
             Log.d(TAG, "OnFirstLoaded")
-            if (::mView.isInitialized) {
-                mView.bringToFront()
-            }
-
-            peekHeight = defaultPeekHeight
-
-            maxPosition = height - peekHeight
-            if (position < minPosition) position = minPosition
-
-            controller?.reload()
-            isFirstLoaded = false
-        } else if(position != positionBefore){
+            reload()
+        } else if (position != positionBefore) {
             position = positionBefore
         }
+    }
+
+    private fun reload() {
+        if (::mView.isInitialized) {
+            mView.bringToFront()
+        }
+
+        peekHeight = defaultPeekHeight
+
+        maxPosition = height - peekHeight
+        if (position < minPosition) position = minPosition
+
+        controller?.reload()
+        isFirstLoaded = false
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        orientationListener?.disable()
     }
 
     override fun onStartNestedScroll(child: View?, target: View?, axes: Int): Boolean {
@@ -180,5 +197,45 @@ open class BottomSheet : FrameLayout {
     fun translate(dy: Int) {
         mView.offsetTopAndBottom(dy)
         onPositionChangedListener?.invoke(position)
+    }
+
+    private var lastHeight = 0
+    private var lastOrientation = -1
+    fun reactToOrientationEvent(isReact: Boolean = true) {
+        if (isReact) {
+            orientationListener = object : OrientationEventListener(
+                context,
+                SensorManager.SENSOR_DELAY_NORMAL
+            ) {
+                override fun onOrientationChanged(orientation: Int) {
+                    if (lastOrientation == -1
+                        || lastOrientation % 180 == orientation % 180
+                    ) {
+                        lastHeight = height
+                        lastOrientation = orientation
+                        return
+                    }
+                    lastOrientation = orientation
+
+                    CoroutineScope(Dispatchers.Main).launch {
+                        for(i in 0 until 20) {
+                            if (height != lastHeight) {
+                                lastHeight = height
+                                reload()
+                            }
+                            delay(500)
+                        }
+                    }
+                }
+            }
+
+            if (orientationListener!!.canDetectOrientation()) {
+                orientationListener!!.enable()
+            } else {
+                orientationListener!!.disable()
+            }
+        } else {
+            orientationListener?.disable()
+        }
     }
 }
