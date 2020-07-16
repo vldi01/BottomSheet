@@ -221,6 +221,7 @@ open class BottomSheet : FrameLayout {
                         for(i in 0 until 20) {
                             if (height != lastHeight) {
                                 lastHeight = height
+                                minPosition = 0f
                                 reload()
                             }
                             delay(500)
