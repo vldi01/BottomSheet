@@ -138,7 +138,7 @@ open class BottomSheet : FrameLayout {
         }
     }
 
-    private fun reload() {
+    fun reload() {
         if (::mView.isInitialized) {
             mView.bringToFront()
         }
