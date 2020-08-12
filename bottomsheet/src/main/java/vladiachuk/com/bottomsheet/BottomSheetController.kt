@@ -233,12 +233,14 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
 
     suspend fun setStateAnimSuspend(state: State, duration: Int = -1) {
         mState = state
+        anim.cancel()
         if (bs.position != state.position)
             setPositionAnimSuspend(state.position, duration)
     }
 
     fun setStateAnim(state: State, duration: Int = -1) {
         mState = state
+        anim.cancel()
         if (bs.position != state.position)
             setPositionAnim(state.position, duration)
     }
