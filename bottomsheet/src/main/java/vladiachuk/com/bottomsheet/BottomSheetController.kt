@@ -60,7 +60,7 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
 
             field = value
             Log.d(TAG, "State $value")
-            onStateChangedListener?.invoke(value)
+            onStateStartChangingListener?.invoke(value)
         }
     var state
         set(value) {
@@ -82,6 +82,7 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
     var possibleStates: ArrayList<State> = ArrayList()
     var statesGraph: ArrayList<Array<State>> = ArrayList()
 
+    var onStateStartChangingListener: ((state: State) -> Unit)? = null
     var onStateChangedListener: ((state: State) -> Unit)? = null
 
     init {
@@ -176,36 +177,6 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
         anim.removeAllListeners()
     }
 
-    private fun setPositionAnim(pos: Float, duration: Int = -1) {
-        anim.cancel()
-        setupAnim(pos)
-        if (duration > 0)
-            anim.duration = duration.toLong()
-        anim.start()
-    }
-
-    private suspend fun setPositionAnimSuspend(pos: Float, duration: Int = -1) {
-        setPositionAnim(pos, duration)
-        suspendCoroutine<Unit> {
-            anim.addListener(object : Animator.AnimatorListener {
-                override fun onAnimationRepeat(animation: Animator?) {}
-                override fun onAnimationStart(animation: Animator?) {}
-
-                override fun onAnimationEnd(animation: Animator?) {
-                    try {
-                        it.resume(Unit)
-                    }catch (ignore: Exception) {}
-                }
-
-                override fun onAnimationCancel(animation: Animator?) {
-                    try {
-                        it.resume(Unit)
-                    }catch (ignore: Exception) {}
-                }
-            })
-        }
-    }
-
     /**
      * Public methods
      */
@@ -219,6 +190,10 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
         onReload?.invoke()
     }
 
+    fun createStateByHeight(height: Float): State {
+        return State(maxStateId++, bs.height - height)
+    }
+
     fun createState(position: Float): State {
         return State(maxStateId++, position)
     }
@@ -229,6 +204,63 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
 
     fun createState(viewId: Int): State {
         return createState(bs.findViewById<View>(viewId))
+    }
+
+    private var lastChanged: State? = null
+    fun setPositionAnim(pos: Float, duration: Int = -1) {
+        anim.cancel()
+        setupAnim(pos)
+        if (duration > 0)
+            anim.duration = duration.toLong()
+        anim.start()
+        anim.addListener(object : Animator.AnimatorListener {
+            override fun onAnimationRepeat(animation: Animator?) {}
+            override fun onAnimationStart(animation: Animator?) {}
+
+            override fun onAnimationEnd(animation: Animator?) {
+                if (bs.position == state.position && state != lastChanged) {
+                    onStateChangedListener?.invoke(state)
+                    lastChanged = state
+                }
+            }
+
+            override fun onAnimationCancel(animation: Animator?) {
+                if (bs.position == state.position && state != lastChanged) {
+                    onStateChangedListener?.invoke(state)
+                    lastChanged = state
+                }
+            }
+        })
+    }
+
+    suspend fun setPositionAnimSuspend(pos: Float, duration: Int = -1) {
+        setPositionAnim(pos, duration)
+        suspendCoroutine<Unit> {
+            anim.addListener(object : Animator.AnimatorListener {
+                override fun onAnimationRepeat(animation: Animator?) {}
+                override fun onAnimationStart(animation: Animator?) {}
+
+                override fun onAnimationEnd(animation: Animator?) {
+                    try {
+                        it.resume(Unit)
+                        if (bs.position == state.position && state != lastChanged) {
+                            onStateChangedListener?.invoke(state)
+                            lastChanged = state
+                        }
+                    }catch (ignore: Exception) {}
+                }
+
+                override fun onAnimationCancel(animation: Animator?) {
+                    try {
+                        it.resume(Unit)
+                        if (bs.position == state.position && state != lastChanged) {
+                            onStateChangedListener?.invoke(state)
+                            lastChanged = state
+                        }
+                    }catch (ignore: Exception) {}
+                }
+            })
+        }
     }
 
     suspend fun setStateAnimSuspend(state: State, duration: Int = -1) {
