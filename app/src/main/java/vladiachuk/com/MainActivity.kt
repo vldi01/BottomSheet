@@ -33,6 +33,15 @@ class MainActivity : AppCompatActivity() {
             bottomSheet.controller!!.run {
                 setStateAnim(HALF_EXPANDED_STATE, 1000)
             }
+           /* bottomSheet.onPositionChangedListener = {
+                println(it)
+            }
+            bottomSheet.controller!!.onStateChangedListener = {
+                println("onStateChangedListener $it")
+            }
+            bottomSheet.controller!!.onStateStartChangingListener = {
+                println("onStateStartChangingListener $it")
+            }*/
         }
 
         bottomSheet.reactToOrientationEvent()

@@ -6,7 +6,6 @@ import android.util.Log
 import android.util.TypedValue
 import android.view.View
 import android.view.animation.DecelerateInterpolator
-import java.lang.Exception
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.math.abs
@@ -115,6 +114,10 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
             (probableState != null) -> {
                 Log.d(TAG, "BS is on right place already")
                 mState = probableState
+                if (state != lastChanged) {
+                    onStateChangedListener?.invoke(state)
+                    lastChanged = state
+                }
                 return
             }
 
@@ -275,5 +278,9 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
         anim.cancel()
         if (bs.position != state.position)
             setPositionAnim(state.position, duration)
+        else if (state != lastChanged) {
+            onStateChangedListener?.invoke(state)
+            lastChanged = state
+        }
     }
 }
