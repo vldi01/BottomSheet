@@ -29,11 +29,11 @@ class MainActivity : AppCompatActivity() {
 
         btn.setOnClickListener { nextState() }
 
-        bottomSheet.post {
+        /*bottomSheet.post {
             bottomSheet.controller!!.run {
                 setStateAnim(HALF_EXPANDED_STATE, 1000)
             }
-           /* bottomSheet.onPositionChangedListener = {
+            bottomSheet.onPositionChangedListener = {
                 println(it)
             }
             bottomSheet.controller!!.onStateChangedListener = {
@@ -41,8 +41,11 @@ class MainActivity : AppCompatActivity() {
             }
             bottomSheet.controller!!.onStateStartChangingListener = {
                 println("onStateStartChangingListener $it")
-            }*/
-        }
+            }
+            bottomSheet.controller!!.onStateChangingCanceledListener = {
+                println("onStateChangingCanceledListener")
+            }
+        }*/
 
         bottomSheet.reactToOrientationEvent()
     }

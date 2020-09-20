@@ -82,6 +82,7 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
     var statesGraph: ArrayList<Array<State>> = ArrayList()
 
     var onStateStartChangingListener: ((state: State) -> Unit)? = null
+    var onStateChangingCanceledListener: (() -> Unit)? = null
     var onStateChangedListener: ((state: State) -> Unit)? = null
 
     init {
@@ -209,6 +210,16 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
         return createState(bs.findViewById<View>(viewId))
     }
 
+    private fun onAnimFinished() {
+        if (bs.position == state.position && state != lastChanged) {
+            onStateChangedListener?.invoke(state)
+            lastChanged = state
+        }
+    }
+    private fun onAnimStarted() {
+        lastChanged = null
+    }
+
     private var lastChanged: State? = null
     fun setPositionAnim(pos: Float, duration: Int = -1) {
         anim.cancel()
@@ -216,22 +227,18 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
         if (duration > 0)
             anim.duration = duration.toLong()
         anim.start()
+        onAnimStarted()
         anim.addListener(object : Animator.AnimatorListener {
             override fun onAnimationRepeat(animation: Animator?) {}
             override fun onAnimationStart(animation: Animator?) {}
 
             override fun onAnimationEnd(animation: Animator?) {
-                if (bs.position == state.position && state != lastChanged) {
-                    onStateChangedListener?.invoke(state)
-                    lastChanged = state
-                }
+                onAnimFinished()
             }
 
             override fun onAnimationCancel(animation: Animator?) {
-                if (bs.position == state.position && state != lastChanged) {
-                    onStateChangedListener?.invoke(state)
-                    lastChanged = state
-                }
+                onStateChangingCanceledListener?.invoke()
+                onAnimFinished()
             }
         })
     }
@@ -246,21 +253,18 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
                 override fun onAnimationEnd(animation: Animator?) {
                     try {
                         it.resume(Unit)
-                        if (bs.position == state.position && state != lastChanged) {
-                            onStateChangedListener?.invoke(state)
-                            lastChanged = state
-                        }
-                    }catch (ignore: Exception) {}
+                        onAnimFinished()
+                    } catch (ignore: Exception) {
+                    }
                 }
 
                 override fun onAnimationCancel(animation: Animator?) {
                     try {
                         it.resume(Unit)
-                        if (bs.position == state.position && state != lastChanged) {
-                            onStateChangedListener?.invoke(state)
-                            lastChanged = state
-                        }
-                    }catch (ignore: Exception) {}
+                        onStateChangingCanceledListener?.invoke()
+                        onAnimFinished()
+                    } catch (ignore: Exception) {
+                    }
                 }
             })
         }
