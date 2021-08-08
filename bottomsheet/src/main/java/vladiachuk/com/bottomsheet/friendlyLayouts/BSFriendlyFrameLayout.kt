@@ -8,7 +8,6 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
-import android.widget.LinearLayout
 import vladiachuk.com.bottomsheet.BottomSheet
 import vladiachuk.com.bottomsheet.R
 
@@ -18,11 +17,9 @@ class BSFriendlyFrameLayout : FrameLayout {
     var bs: BottomSheet? = null
 
     @JvmOverloads
-    constructor(
-        context: Context,
-        attrs: AttributeSet? = null,
-        defStyleAttr: Int = 0
-    ): super(context, attrs, defStyleAttr) {
+    constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0) : super(
+        context, attrs, defStyleAttr
+    ) {
         this.attrs = attrs
         setupAttributes()
     }
@@ -33,7 +30,9 @@ class BSFriendlyFrameLayout : FrameLayout {
         attrs: AttributeSet?,
         defStyleAttr: Int,
         defStyleRes: Int
-    ): super(context, attrs, defStyleAttr, defStyleRes) {
+    ) : super(
+        context, attrs, defStyleAttr, defStyleRes
+    ) {
         this.attrs = attrs
         setupAttributes()
     }
@@ -52,7 +51,7 @@ class BSFriendlyFrameLayout : FrameLayout {
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         super.onLayout(changed, l, t, r, b)
-        if (id != null){
+        if (id != null) {
             bs = (parent as View).findViewById(id!!)
         }
     }

@@ -12,7 +12,10 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-open class BottomSheetController(private val bs: BottomSheet, private val starState: State? = null) {
+open class BottomSheetController(
+    private val bs: BottomSheet,
+    private val starState: State? = null
+) {
     private val TAG = "BottomSheetController"
 
     var MAX_DURATION = 500
@@ -21,19 +24,27 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
 
     val COLLAPSED_STATE = createState(bs.maxPosition)
     val EXPANDED_STATE = createState(bs.minPosition)
-    val HALF_EXPANDED_STATE = createState(bs.height / 2f)
-    val HIDDEN_STATE = createState(bs.height.toFloat())
+    val HALF_EXPANDED_STATE by lazy { createState(bs.height / 2f) }
+    val HIDDEN_STATE by lazy { createState(bs.height.toFloat()) }
 
 
-    var FAST_SPEED =
-        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2.2f, bs.resources.displayMetrics)
-    var MEDIUM_SPEED =
-        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 0.4f, bs.resources.displayMetrics)
-    var SMALL_SPEED =
-        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 0.1f, bs.resources.displayMetrics)
+    var FAST_SPEED = TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_DIP, 2.2f,
+        bs.resources.displayMetrics
+    )
+    var MEDIUM_SPEED = TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_DIP, 0.4f,
+        bs.resources.displayMetrics
+    )
+    var SMALL_SPEED = TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_DIP, 0.1f,
+        bs.resources.displayMetrics
+    )
 
-    var MAX_PREV_DISTANCE =
-        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 60f, bs.resources.displayMetrics)
+    var MAX_PREV_DISTANCE = TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_DIP, 60f,
+        bs.resources.displayMetrics
+    )
     var MAX_PREV_PERCENTAGE = 0.3f
 
     var STOP_TIME = 300
@@ -59,7 +70,7 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
 
             field = value
             Log.d(TAG, "State $value")
-            onStateStartChangingListener?.invoke(value)
+            onStateStartChangingListeners.notify(value)
         }
     var state
         set(value) {
@@ -70,7 +81,8 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
 
     val nextState: State
         get() {
-            return statesGraph.firstOrNull { it[0] == mState }?.get(1) ?: mState
+            return statesGraph.firstOrNull { it[0] == mState }
+                ?.get(1) ?: mState
         }
 
     private var mPrevState: State = mState
@@ -79,11 +91,16 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
 
 
     var possibleStates: ArrayList<State> = ArrayList()
+        set(value) {
+            field = value
+            onChangedPossibleStatesListeners.notify(value)
+        }
     var statesGraph: ArrayList<Array<State>> = ArrayList()
 
-    var onStateStartChangingListener: ((state: State) -> Unit)? = null
-    var onStateChangingCanceledListener: (() -> Unit)? = null
-    var onStateChangedListener: ((state: State) -> Unit)? = null
+    val onStateStartChangingListeners = ListenerHolder<State>()
+    val onStateChangingCanceledListeners = ListenerHolder<Unit>()
+    val onStateChangedListeners = ListenerHolder<State>()
+    val onChangedPossibleStatesListeners = ListenerHolder<ArrayList<State>>()
 
     init {
         Log.d(TAG, "Slow: $SMALL_SPEED")
@@ -116,7 +133,7 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
                 Log.d(TAG, "BS is on right place already")
                 mState = probableState
                 if (state != lastChanged) {
-                    onStateChangedListener?.invoke(state)
+                    onStateChangedListeners.notify(state)
                     lastChanged = state
                 }
                 return
@@ -126,40 +143,38 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
             (absSpeed >= FAST_SPEED) -> {
                 Log.d(TAG, "Fast speed")
                 if (speed > 0) {
-                    possibleStates.maxBy { it.position } ?: mState
+                    possibleStates.maxByOrNull { it.position } ?: mState
                 } else {
-                    possibleStates.minBy { it.position } ?: mState
+                    possibleStates.maxByOrNull { it.position } ?: mState
                 }
             }
 
             //closest
             (stopTime > STOP_TIME || absSpeed <= SMALL_SPEED) -> {
                 Log.d(TAG, "Closest")
-                possibleStates.minBy { abs(bsPos - it.position) } ?: mState
+                possibleStates.maxByOrNull { abs(bsPos - it.position) } ?: mState
             }
 
             //current
-            ((absSpeed <= MEDIUM_SPEED
-                    && delta < MAX_PREV_DISTANCE
-                    && delta < MAX_PREV_PERCENTAGE * abs(mState.position - nextState.position))
-                    || (bsPos > mState.position && speed < 0)
-                    || (bsPos < mState.position && speed >= 0)
-                    ) -> {
+            ((absSpeed <= MEDIUM_SPEED && delta < MAX_PREV_DISTANCE && delta < MAX_PREV_PERCENTAGE * abs(
+                mState.position - nextState.position
+            )) || (bsPos > mState.position && speed < 0) || (bsPos < mState.position && speed >= 0)) -> {
                 Log.d(TAG, "Current")
                 mState
             }
 
             //next closest
-            (!(bsPos > min(mState.position, nextState.position)
-                    && bsPos < max(mState.position, nextState.position))
-                    ) -> {
+            (!(bsPos > min(mState.position, nextState.position) && bsPos < max(
+                mState.position,
+                nextState.position
+            ))) -> {
                 Log.d(TAG, "Next closest")
                 if (speed > 0) {
-                    possibleStates.filter { it.position >= bsPos }.minBy { abs(bsPos - it.position) }
-                        ?: mState
+                    possibleStates.filter { it.position >= bsPos }
+                        .minByOrNull { abs(bsPos - it.position) } ?: mState
                 } else {
-                    possibleStates.filter { it.position <= bsPos }.minBy { abs(bsPos - it.position) }
-                        ?: mState
+                    possibleStates.filter { it.position <= bsPos }
+                        .minByOrNull { abs(bsPos - it.position) } ?: mState
                 }
             }
 
@@ -176,8 +191,9 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
     private fun setupAnim(toPos: Float) {
         val bsPos = bs.position
         anim.setFloatValues(bs.position, toPos)
-        anim.duration =
-            (abs(bsPos - toPos) / (bs.height - bs.peekHeight) * (MAX_DURATION - MIN_DURATION) + MIN_DURATION).toLong()
+        anim.duration = (abs(
+            (bsPos - toPos) / (bs.height - bs.peekHeight) * (MAX_DURATION - MIN_DURATION) + MIN_DURATION
+        )).toLong()
         anim.removeAllListeners()
     }
 
@@ -194,28 +210,35 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
         onReload?.invoke()
     }
 
-    fun createStateByHeight(height: Float): State {
-        return State(maxStateId++, bs.height - height)
+    fun createStateByHeight(height: Float, follow: Boolean = false): State {
+        return createState(bs.height - height, follow)
     }
 
-    fun createState(position: Float): State {
-        return State(maxStateId++, position)
+    private fun onStateHeightChanged(state: State) {
+        if (this.state == state) setPositionAnim(state.position)
     }
 
-    fun createState(view: View): State {
-        return createState(with(view) { bs.height - y - height })
+    fun createState(position: Float, follow: Boolean = false): State {
+        val result = State(maxStateId++, position)
+        if (follow) result.onPositionChanged = { onStateHeightChanged(it) }
+        return result
     }
 
-    fun createState(viewId: Int): State {
-        return createState(bs.findViewById<View>(viewId))
+    fun createState(view: View, follow: Boolean = false): State {
+        return createState(with(view) { bs.height - y - height }, follow)
+    }
+
+    fun createState(viewId: Int, follow: Boolean = false): State {
+        return createState(bs.findViewById<View>(viewId), follow)
     }
 
     private fun onAnimFinished() {
         if (bs.position == state.position && state != lastChanged) {
-            onStateChangedListener?.invoke(state)
+            onStateChangedListeners.notify(state)
             lastChanged = state
         }
     }
+
     private fun onAnimStarted() {
         lastChanged = null
     }
@@ -224,8 +247,7 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
     fun setPositionAnim(pos: Float, duration: Int = -1) {
         anim.cancel()
         setupAnim(pos)
-        if (duration > 0)
-            anim.duration = duration.toLong()
+        if (duration > 0) anim.duration = duration.toLong()
         anim.start()
         onAnimStarted()
         anim.addListener(object : Animator.AnimatorListener {
@@ -237,7 +259,7 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
             }
 
             override fun onAnimationCancel(animation: Animator?) {
-                onStateChangingCanceledListener?.invoke()
+                onStateChangingCanceledListeners.notify(Unit)
                 onAnimFinished()
             }
         })
@@ -261,7 +283,7 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
                 override fun onAnimationCancel(animation: Animator?) {
                     try {
                         it.resume(Unit)
-                        onStateChangingCanceledListener?.invoke()
+                        onStateChangingCanceledListeners.notify(Unit)
                         onAnimFinished()
                     } catch (ignore: Exception) {
                     }
@@ -273,18 +295,37 @@ open class BottomSheetController(private val bs: BottomSheet, private val starSt
     suspend fun setStateAnimSuspend(state: State, duration: Int = -1) {
         mState = state
         anim.cancel()
-        if (bs.position != state.position)
-            setPositionAnimSuspend(state.position, duration)
+        setPositionAnimSuspend(state.position, duration)
     }
 
+    /**
+     * WARNING: make sure this function is called for a rendered view
+     * If this method is called on screen initialization it might be ignored
+     * Use RootView.post{ setStateAnim() } if unsure.
+     */
     fun setStateAnim(state: State, duration: Int = -1) {
         mState = state
         anim.cancel()
-        if (bs.position != state.position)
-            setPositionAnim(state.position, duration)
+        if (bs.position != state.position) setPositionAnim(state.position, duration)
         else if (state != lastChanged) {
-            onStateChangedListener?.invoke(state)
+            onStateChangedListeners.notify(state)
             lastChanged = state
+        }
+    }
+
+    fun fixHiddenState() {
+        val height = bs.height.toFloat()
+        if (HIDDEN_STATE.position != height) {
+            HIDDEN_STATE.position = height
+            if (state == HIDDEN_STATE) {
+                bs.position = HIDDEN_STATE.position
+            }
+        }
+        if (COLLAPSED_STATE.position != bs.maxPosition) {
+            COLLAPSED_STATE.position = bs.maxPosition
+            if (state == COLLAPSED_STATE) {
+                bs.position = COLLAPSED_STATE.position
+            }
         }
     }
 }

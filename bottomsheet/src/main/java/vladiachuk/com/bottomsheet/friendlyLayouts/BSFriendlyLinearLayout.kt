@@ -17,11 +17,9 @@ class BSFriendlyLinearLayout : LinearLayout {
     var bs: BottomSheet? = null
 
     @JvmOverloads
-    constructor(
-        context: Context,
-        attrs: AttributeSet? = null,
-        defStyleAttr: Int = 0
-    ): super(context, attrs, defStyleAttr) {
+    constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0) : super(
+        context, attrs, defStyleAttr
+    ) {
         this.attrs = attrs
         setupAttributes()
     }
@@ -32,7 +30,9 @@ class BSFriendlyLinearLayout : LinearLayout {
         attrs: AttributeSet?,
         defStyleAttr: Int,
         defStyleRes: Int
-    ): super(context, attrs, defStyleAttr, defStyleRes) {
+    ) : super(
+        context, attrs, defStyleAttr, defStyleRes
+    ) {
         this.attrs = attrs
         setupAttributes()
     }
@@ -51,7 +51,7 @@ class BSFriendlyLinearLayout : LinearLayout {
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         super.onLayout(changed, l, t, r, b)
-        if (id != null){
+        if (id != null) {
             bs = (parent as View).findViewById(id!!)
         }
     }

@@ -11,21 +11,48 @@
         android:id="@+id/bottomSheet"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout="@layout/frame"
+        app:layout="@layout/content_for_bottomsheet"
         app:peekHeight="16dp"
-        app:layout_constraintBottom_toTopOf="@id/qwe"
+        app:layout_constraintBottom_toTopOf="@id/friend_layout"
         app:layout_constraintTop_toTopOf="parent">
-        <TextView
+        <LinearLayout
+            android:id="@+id/linear_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="From BS"
-            android:layout_marginTop="200dp"
-            android:textSize="26sp"
-            android:textAlignment="center"/>
+            android:orientation="vertical"
+            android:layout_gravity="top"
+            android:gravity="center_horizontal">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Text inside the BottomSheet layout"
+                android:layout_marginTop="200dp"
+                android:textSize="26sp"
+                android:textAlignment="center"/>
+
+            <Button
+                android:id="@+id/demo_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Demonstrate states"/>
+
+            <Button
+                android:id="@+id/small_state_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Small state"/>
+
+            <Button
+                android:id="@+id/bigger_state_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bigger state"/>
+
+        </LinearLayout>
     </vladiachuk.com.bottomsheet.BottomSheet>
 
     <vladiachuk.com.bottomsheet.friendlyLayouts.BSFriendlyFrameLayout
-        android:id="@+id/qwe"
+        android:id="@+id/friend_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintLeft_toLeftOf="parent"

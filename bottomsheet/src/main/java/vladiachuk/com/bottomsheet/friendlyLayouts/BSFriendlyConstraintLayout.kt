@@ -1,13 +1,10 @@
 package vladiachuk.com.bottomsheet.friendlyLayouts
 
 import android.annotation.SuppressLint
-import android.annotation.TargetApi
 import android.content.Context
-import android.os.Build
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
-import android.widget.LinearLayout
 import androidx.constraintlayout.widget.ConstraintLayout
 import vladiachuk.com.bottomsheet.BottomSheet
 import vladiachuk.com.bottomsheet.R
@@ -18,11 +15,9 @@ class BSFriendlyConstraintLayout : ConstraintLayout {
     var bs: BottomSheet? = null
 
     @JvmOverloads
-    constructor(
-        context: Context,
-        attrs: AttributeSet? = null,
-        defStyleAttr: Int = 0
-    ): super(context, attrs, defStyleAttr) {
+    constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0) : super(
+        context, attrs, defStyleAttr
+    ) {
         this.attrs = attrs
         setupAttributes()
     }
@@ -30,7 +25,10 @@ class BSFriendlyConstraintLayout : ConstraintLayout {
     fun setupAttributes() {
         if (attrs == null) return
 
-        val arr = context.obtainStyledAttributes(attrs, R.styleable.BSFriendlyConstraintLayout, 0, 0)
+        val arr = context.obtainStyledAttributes(
+            attrs, R.styleable.BSFriendlyConstraintLayout, 0,
+            0
+        )
 
         if (arr.hasValue(R.styleable.BSFriendlyConstraintLayout_bottom_sheet_id)) {
             id = arr.getResourceId(R.styleable.BSFriendlyConstraintLayout_bottom_sheet_id, 0)
@@ -41,7 +39,7 @@ class BSFriendlyConstraintLayout : ConstraintLayout {
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         super.onLayout(changed, l, t, r, b)
-        if (id != null){
+        if (id != null) {
             bs = (parent as View).findViewById(id!!)
         }
     }

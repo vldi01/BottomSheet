@@ -3,6 +3,7 @@ package vladiachuk.com.bottomsheet
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.content.Context
+import android.content.res.Configuration
 import android.hardware.SensorManager
 import android.os.Build
 import android.util.AttributeSet
@@ -19,7 +20,9 @@ import kotlinx.coroutines.launch
 
 
 open class BottomSheet : FrameLayout {
-    private val TAG = "BottomSheet"
+    companion object {
+        private const val TAG = "BottomSheet"
+    }
 
     var orientationListener: OrientationEventListener? = null
 
@@ -60,13 +63,13 @@ open class BottomSheet : FrameLayout {
             Log.d(TAG, "Peek height $value")
             val peekPosition = height - peekHeight
             if (maxPosition > peekPosition) {
-                maxPosition = height - peekPosition
+                maxPosition = peekPosition
             }
         }
 
     var defaultPeekHeight = 0f
 
-    var onPositionChangedListener: ((position: Float) -> Unit)? = null
+    var onPositionChangedListeners = ListenerHolder<Float>()
 
     lateinit var touchController: TouchController
     var controller: BottomSheetController? = null
@@ -75,11 +78,9 @@ open class BottomSheet : FrameLayout {
      * Initialization
      */
     @JvmOverloads
-    constructor(
-        context: Context,
-        attrs: AttributeSet? = null,
-        defStyleAttr: Int = 0
-    ): super(context, attrs, defStyleAttr) {
+    constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0) : super(
+        context, attrs, defStyleAttr
+    ) {
         initialize(attrs)
     }
 
@@ -89,7 +90,9 @@ open class BottomSheet : FrameLayout {
         attrs: AttributeSet?,
         defStyleAttr: Int,
         defStyleRes: Int
-    ): super(context, attrs, defStyleAttr, defStyleRes) {
+    ) : super(
+        context, attrs, defStyleAttr, defStyleRes
+    ) {
         initialize(attrs)
     }
 
@@ -109,7 +112,8 @@ open class BottomSheet : FrameLayout {
             mLayoutId = arr.getResourceId(R.styleable.BottomSheet_layout, 0)
         }
         if (arr.hasValue(R.styleable.BottomSheet_peekHeight)) {
-            defaultPeekHeight = arr.getDimensionPixelOffset(R.styleable.BottomSheet_peekHeight, 0).toFloat()
+            defaultPeekHeight = arr.getDimensionPixelOffset(R.styleable.BottomSheet_peekHeight, 0)
+                .toFloat()
         }
 
         arr.recycle()
@@ -118,23 +122,47 @@ open class BottomSheet : FrameLayout {
     private fun inflateLayout() {
         if (mLayoutId == null) return
 
-        mView = LayoutInflater.from(context).inflate(mLayoutId!!, this, false)
+        mView = LayoutInflater.from(context)
+            .inflate(mLayoutId!!, this, false)
+        mView.addOnLayoutChangeListener { v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+            if (v.y != posShouldBe) {
+                mView.y = posShouldBe
+            }
+        }
         addView(mView)
     }
-
 
     /**
      * Overrides
      */
     private var isFirstLoaded = true
+    private var lastHeightOnLayout = 0
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
+        if (newConfig?.orientation == Configuration.ORIENTATION_PORTRAIT || newConfig?.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+
+            if (::mView.isInitialized) {
+                mView.post { // view.post is needed, otherwise View.height might be incorrect
+                    val positionBefore = position
+                    reload()
+                    if (position != positionBefore) {
+                        position = positionBefore
+                    }
+                    if (lastHeightOnLayout != height) {
+                        lastHeightOnLayout = height
+                        maxPosition = height - peekHeight
+                        controller?.fixHiddenState()
+                    }
+                }
+            }
+        }
+    }
+
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
-        val positionBefore = position
         super.onLayout(changed, left, top, right, bottom)
-        if (isFirstLoaded) {
-            Log.d(TAG, "OnFirstLoaded")
+        if (lastHeight != height) {
+            lastHeight = height
             reload()
-        } else if (position != positionBefore) {
-            position = positionBefore
         }
     }
 
@@ -187,30 +215,31 @@ open class BottomSheet : FrameLayout {
      * Public methods
      */
 
+    private var posShouldBe: Float = 0f
     var position: Float
         set(value) {
+            posShouldBe = value
             mView.y = value
-            onPositionChangedListener?.invoke(value)
+            onPositionChangedListeners.notify(value)
         }
         get() = mView.y
 
     fun translate(dy: Int) {
         mView.offsetTopAndBottom(dy)
-        onPositionChangedListener?.invoke(position)
+        onPositionChangedListeners.notify(position)
     }
 
     private var lastHeight = 0
     private var lastOrientation = -1
-    fun reactToOrientationEvent(isReact: Boolean = true) {
+    fun reactToOrientationEvent(
+        isReact: Boolean = true,
+        onOrientationChanged: (() -> Unit)? = null
+    ) {
         if (isReact) {
-            orientationListener = object : OrientationEventListener(
-                context,
-                SensorManager.SENSOR_DELAY_NORMAL
-            ) {
+            orientationListener = object :
+                OrientationEventListener(context, SensorManager.SENSOR_DELAY_NORMAL) {
                 override fun onOrientationChanged(orientation: Int) {
-                    if (lastOrientation == -1
-                        || lastOrientation % 180 == orientation % 180
-                    ) {
+                    if (lastOrientation == -1 || lastOrientation % 180 == orientation % 180) {
                         lastHeight = height
                         lastOrientation = orientation
                         return
@@ -218,7 +247,7 @@ open class BottomSheet : FrameLayout {
                     lastOrientation = orientation
 
                     CoroutineScope(Dispatchers.Main).launch {
-                        for(i in 0 until 20) {
+                        for (i in 0 until 20) {
                             if (height != lastHeight) {
                                 lastHeight = height
                                 minPosition = 0f
@@ -227,6 +256,7 @@ open class BottomSheet : FrameLayout {
                             delay(500)
                         }
                     }
+                    onOrientationChanged?.invoke()
                 }
             }
 

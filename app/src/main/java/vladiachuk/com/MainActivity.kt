@@ -4,50 +4,56 @@ import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.frame.*
+import kotlinx.android.synthetic.main.content_for_bottomsheet.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import vladiachuk.com.bottomsheet.BottomSheetController
+import vladiachuk.com.bottomsheet.State
 
 
 class MainActivity : AppCompatActivity() {
 
-    val firstFragment = FirstFragment()
-    val secondFragment = SecondFragment()
-    var isFirstState = true
+    private val firstFragment = FirstFragment()
+    private val secondFragment = SecondFragment()
+    private var isFirstState = true
+
+    private val controller by lazy { BottomSheetController(bottomSheet) }
+    private val customState by lazy { controller.createState(smallSize, true) }
+
+    private var smallSize = 900f
+    private var biggerSize = 700f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        bottomSheet.controller = BottomSheetController(bottomSheet)
+        bottomSheet.run {
+            controller = this@MainActivity.controller
+            post {
+                smallSize = height * 0.8f
+                biggerSize = height * 0.65f
+                customState.position = smallSize
+            }
+        }
 
-        firstState()
+        setupFirstState()
 
-        bottom_navigation.setOnNavigationItemSelectedListener(this::onBottomNavigationClick)
+        bottom_navigation.setOnItemSelectedListener { onBottomNavigationClick(it) }
 
-        btn.setOnClickListener { nextState() }
-
-        /*bottomSheet.post {
-            bottomSheet.controller!!.run {
-                setStateAnim(HALF_EXPANDED_STATE, 1000)
-            }
-            bottomSheet.onPositionChangedListener = {
-                println(it)
-            }
-            bottomSheet.controller!!.onStateChangedListener = {
-                println("onStateChangedListener $it")
-            }
-            bottomSheet.controller!!.onStateStartChangingListener = {
-                println("onStateStartChangingListener $it")
-            }
-            bottomSheet.controller!!.onStateChangingCanceledListener = {
-                println("onStateChangingCanceledListener")
-            }
-        }*/
+        next_state_btn.setOnClickListener { nextState() }
 
         bottomSheet.reactToOrientationEvent()
+        small_state_btn.setOnClickListener {
+            customState.position = smallSize
+        }
+        bigger_state_btn.setOnClickListener {
+            customState.position = biggerSize
+        }
+        demo_btn.setOnClickListener {
+            demoMode()
+        }
     }
 
     override fun onBackPressed() {
@@ -70,49 +76,65 @@ class MainActivity : AppCompatActivity() {
                 if (isFirstState)
                     nextState()
                 else
-                    GlobalScope.launch(Dispatchers.Main) {
-                        bottomSheet.controller?.run { setStateAnimSuspend(COLLAPSED_STATE) }
-                        firstState()
-                        bottomSheet.controller?.run { setStateAnim(HALF_EXPANDED_STATE) }
-                    }
+                    collapseAndOpen(customState)
             }
             R.id.second_action -> {
                 if (!isFirstState)
                     nextState()
                 else
-                    GlobalScope.launch(Dispatchers.Main) {
-                        bottomSheet.controller?.run { setStateAnimSuspend(COLLAPSED_STATE) }
-                        secondState()
-                        bottomSheet.controller?.run { setStateAnim(HALF_EXPANDED_STATE) }
-                    }
+                    collapseAndOpen(controller.HALF_EXPANDED_STATE)
             }
         }
         return false
     }
 
-    private fun firstState() {
+    private fun collapseAndOpen(state: State) {
+        CoroutineScope(Dispatchers.Main).launch {
+            bottomSheet.controller?.run {
+                setStateAnimSuspend(COLLAPSED_STATE)
+                setupSecondState()
+                setStateAnim(state)
+            }
+        }
+    }
+
+    private fun setupFirstState() {
         supportFragmentManager.beginTransaction().replace(R.id.frame, firstFragment).commit()
         bottomSheet.controller?.run {
-            possibleStates = arrayListOf(COLLAPSED_STATE, HALF_EXPANDED_STATE, EXPANDED_STATE)
+            possibleStates = arrayListOf(COLLAPSED_STATE, EXPANDED_STATE, customState)
             statesGraph = arrayListOf(
-                arrayOf(COLLAPSED_STATE, HALF_EXPANDED_STATE),
-                arrayOf(HALF_EXPANDED_STATE, COLLAPSED_STATE),
-                arrayOf(EXPANDED_STATE, COLLAPSED_STATE)
+                arrayOf(COLLAPSED_STATE, customState),
+                arrayOf(EXPANDED_STATE, COLLAPSED_STATE),
+                arrayOf(customState, COLLAPSED_STATE)
             )
         }
         isFirstState = true
     }
 
-    private fun secondState() {
+    private fun setupSecondState() {
         supportFragmentManager.beginTransaction().replace(R.id.frame, secondFragment).commit()
         bottomSheet.controller?.run {
             possibleStates = arrayListOf(COLLAPSED_STATE, HALF_EXPANDED_STATE, EXPANDED_STATE)
             statesGraph = arrayListOf(
                 arrayOf(COLLAPSED_STATE, HALF_EXPANDED_STATE),
-                arrayOf(HALF_EXPANDED_STATE, COLLAPSED_STATE),
+                arrayOf(HALF_EXPANDED_STATE, EXPANDED_STATE),
                 arrayOf(EXPANDED_STATE, COLLAPSED_STATE)
             )
         }
         isFirstState = false
+    }
+
+    private fun demoMode() {
+        CoroutineScope(Dispatchers.Main).launch {
+            bottomSheet.controller?.let { controller ->
+                val lastState = controller.state
+                controller.possibleStates.forEach {
+                    controller.setStateAnimSuspend(it)
+                    delay(500)
+                }
+
+                controller.setStateAnimSuspend(lastState)
+            }
+        }
     }
 }

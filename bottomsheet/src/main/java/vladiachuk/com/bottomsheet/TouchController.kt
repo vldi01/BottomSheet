@@ -9,7 +9,7 @@ import kotlin.math.abs
 
 open class TouchController(private val bs: BottomSheet) {
     private val MAX_LAST_SPEEDS_COUNT = 5
-    var MIN_DRAG_PIXELS = 10
+    var MIN_DRAG_PIXELS = 30
 
     private var isScrolling = false
     private var isDragging = false
@@ -38,8 +38,9 @@ open class TouchController(private val bs: BottomSheet) {
         if (bs.position - dy < bs.minPosition) {
             bs.position = bs.minPosition
             isScrolling = false
-        } else if ((target !is RecyclerView && target!!.scrollY == 0)
-            || (target is RecyclerView && isRecyclerScrollZero(target))
+        } else if (bs.controller?.state?.lockScroll == true || (target !is RecyclerView && target!!.scrollY == 0) || (target is RecyclerView && isRecyclerScrollZero(
+                target
+            ))
         ) {
             isScrolling = true
             consumed!![1] = dy
@@ -55,10 +56,11 @@ open class TouchController(private val bs: BottomSheet) {
     }
 
     fun onNestedPreFling(target: View?): Boolean {
-        return if (target !is RecyclerView)
-            target?.scrollY == 0
-        else
-            isRecyclerScrollZero(target)
+        return when {
+            bs.controller?.state?.lockScroll == true -> true
+            target !is RecyclerView -> target?.scrollY == 0
+            else -> isRecyclerScrollZero(target)
+        }
     }
 
 
@@ -142,13 +144,17 @@ open class TouchController(private val bs: BottomSheet) {
     fun addOnStartDraggingListener(listener: () -> Unit) = onStartListeners.add(listener)
 
     fun addOnStopDraggingListener(listener: (speed: Float, stopTime: Int) -> Unit) =
-        onStopListeners.add(listener)
+        onStopListeners.add(
+            listener
+        )
 
     fun addOnDragListener(listener: (speed: Float) -> Unit) = onDragListeners.add(listener)
 
     fun removeOnStartDraggingListener(listener: () -> Unit) = onStartListeners.remove(listener)
     fun removeOnStopDraggingListener(listener: (speed: Float, stopTime: Int) -> Unit) =
-        onStopListeners.remove(listener)
+        onStopListeners.remove(
+            listener
+        )
 
     fun removeOnDragListener(listener: (speed: Float) -> Unit) = onDragListeners.remove(listener)
 
